@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestro rincón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Caveat:wght@500;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#180f22;
+    --bg-2:#241631;
+    --card:#2c1c3d;
+    --parchment:#f3e6d3;
+    --muted:#c9b8d6;
+    --gold:#e3b23c;
+    --rose:#d98a9c;
+    --line: rgba(227,178,60,0.25);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--parchment);
+    font-family:'Nunito Sans', sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:'Cormorant Garamond', serif; font-weight:600;}
+  .hand{font-family:'Caveat', cursive;}
+  section{padding: 5rem 6vw;}
+  .hero{
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    position:relative;
+    background: radial-gradient(ellipse at 50% 30%, var(--bg-2), var(--bg) 70%);
+  }
+  .hero .eyebrow{
+    font-family:'Caveat', cursive;
+    font-size: 1.6rem;
+    color: var(--rose);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1{font-size: clamp(2.5rem, 7vw, 5rem); font-style:italic; color:var(--parchment);}
+  .hero p{color:var(--muted); margin-top:1rem; font-size:1.1rem; max-width:34rem;}
+  .hero .counter{margin-top:2.5rem; font-family:'Caveat',cursive; font-size:1.8rem; color:var(--gold);}
+  .section-title{font-size: clamp(1.8rem, 4vw, 2.6rem); font-style:italic; margin-bottom:.5rem;}
+  .section-sub{color:var(--muted); margin-bottom:2.5rem; max-width:36rem;}
+
+  .carousel-wrap{position:relative; max-width:760px; margin:0 auto;}
+  .carousel{
+    position:relative; aspect-ratio: 4/3; border-radius:18px; overflow:hidden;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .carousel img, .carousel video{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    opacity:0; transition:opacity .8s ease;
+  }
+  .carousel img.active, .carousel video.active{opacity:1;}
+  .carousel .empty{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:.5rem; color:var(--muted); text-align:center; padding:2rem;
+  }
+  .carousel .loading{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-family:'Caveat',cursive; font-size:1.4rem;
+  }
+  .carousel-controls{display:flex; justify-content:center; align-items:center; gap:1.2rem; margin-top:1.2rem;}
+  .carousel-controls button{
+    background:none; border:1px solid var(--line); color:var(--gold); width:38px; height:38px;
+    border-radius:50%; cursor:pointer; font-size:1.1rem; transition:.2s;
+  }
+  .carousel-controls button:hover{background:var(--gold); color:var(--bg);}
+  .dots{display:flex; gap:6px; flex-wrap:wrap; max-width:200px; justify-content:center;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer;}
+  .dot.active{background:var(--gold);}
+  .upload-box{margin-top:2rem; text-align:center;}
+  .upload-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    background:transparent; border:1px solid var(--gold); color:var(--gold);
+    padding:.7rem 1.4rem; border-radius:30px; cursor:pointer; font-family:'Nunito Sans'; font-weight:600;
+    transition:.2s;
+  }
+  .upload-btn:hover{background:var(--gold); color:var(--bg);}
+  .upload-btn.disabled{opacity:.5; pointer-events:none;}
+  input[type=file]{display:none;}
+  .upload-status{margin-top:.8rem; color:var(--muted); font-size:.85rem; min-height:1.2rem;}
+
+  .music-list{max-width:760px; margin:2rem auto 0; display:flex; flex-direction:column; gap:.6rem;}
+  .music-item{
+    display:flex; align-items:center; gap:1rem; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; padding:.8rem 1rem;
+  }
+  .music-item .title{flex:1; font-weight:600;}
+  .music-item audio{height:32px; max-width:220px;}
+  .music-item .del{flex-shrink:0;}
+
+  .wheel-area{display:flex; flex-direction:column; align-items:center; gap:2rem;}
+  .wheel-wrap{position:relative; width:min(340px, 80vw); aspect-ratio:1;}
+  .wheel-pointer{
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent;
+    border-top:20px solid var(--gold); z-index:5;
+  }
+  svg.wheel{width:100%; height:100%; transition: transform 4s cubic-bezier(.17,.67,.16,.99);}
+  .spin-btn{
+    background:var(--gold); color:var(--bg); border:none; padding:.9rem 2.2rem; border-radius:30px;
+    font-weight:700; letter-spacing:.03em; cursor:pointer; font-family:'Nunito Sans'; font-size:.95rem;
+  }
+  .spin-btn:disabled{opacity:.5; cursor:default;}
+  .wheel-result{
+    font-family:'Caveat', cursive; font-size:1.8rem; color:var(--rose); min-height:2.4rem; text-align:center;
+  }
+  .activities-edit{max-width:420px; margin:1rem auto 0; text-align:left;}
+  .activities-edit summary{cursor:pointer; color:var(--muted); font-size:.9rem;}
+  .act-row{display:flex; gap:.5rem; margin-top:.6rem;}
+  .act-row input{
+    flex:1; background:var(--card); border:1px solid var(--line); color:var(--parchment);
+    padding:.5rem .7rem; border-radius:8px; font-family:'Nunito Sans'; min-width:0;
+  }
+  .act-row button{background:none; border:none; color:var(--rose); cursor:pointer; font-size:1.1rem;}
+  .add-act{
+    margin-top:.7rem; background:none; border:1px dashed var(--line); color:var(--muted);
+    padding:.4rem 1rem; border-radius:8px; cursor:pointer; width:100%;
+  }
+
+  .cal-grid{display:grid; grid-template-columns: 1.2fr 1fr; gap:2.5rem; max-width:960px; margin:0 auto;}
+  @media (max-width:760px){.cal-grid{grid-template-columns:1fr;}}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:1.6rem;}
+  .card h3{font-style:italic; font-size:1.4rem; margin-bottom:1rem;}
+  .date-item, .rem-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:.8rem 0; border-bottom:1px solid var(--line); gap:1rem;
+  }
+  .date-item:last-child, .rem-item:last-child{border-bottom:none;}
+  .date-item .label, .rem-item .label{font-weight:600;}
+  .date-item .when{color:var(--gold); font-family:'Caveat', cursive; font-size:1.3rem; white-space:nowrap;}
+  .rem-item .when{color:var(--muted); font-size:.85rem; white-space:nowrap;}
+  .del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem;}
+  .del:hover{color:var(--rose);}
+  .mini-form{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem;}
+  .mini-form input{
+    background:var(--bg-2); border:1px solid var(--line); color:var(--parchment);
+    padding:.55rem .7rem; border-radius:8px; font-family:'Nunito Sans'; font-size:.9rem;
+  }
+  .mini-form input[type=text]{flex:1; min-width:120px;}
+  .mini-form button{
+    background:var(--gold); color:var(--bg); border:none; padding:.55rem 1.1rem;
+    border-radius:8px; font-weight:700; cursor:pointer;
+  }
+  .empty-note{color:var(--muted); font-size:.9rem; font-style:italic;}
+  footer{text-align:center; padding:3rem; color:var(--muted); font-family:'Caveat', cursive; font-size:1.3rem;}
+
+  @media (max-width: 640px){
+    section{padding: 3.5rem 6vw;}
+    .hero{min-height:92vh; padding: 3rem 6vw;}
+    .hero p{font-size:1rem;}
+    .card{padding:1.2rem;}
+    .mini-form{flex-direction:column; align-items:stretch;}
+    .mini-form input, .mini-form button{width:100%;}
+    .date-item, .rem-item{flex-wrap:wrap;}
+    .carousel-controls{gap:.8rem;}
+    .carousel-controls button{width:34px; height:34px; font-size:1rem; flex-shrink:0;}
+    .upload-btn{padding:.6rem 1.2rem; font-size:.9rem;}
+    footer{padding:2rem 1.5rem; font-size:1.1rem;}
+    .act-row input{min-width:0;}
+    .music-item{flex-wrap:wrap;}
+  }
+  @media (max-width: 380px){
+    .hero h1{font-size:2.1rem;}
+    .section-title{font-size:1.6rem;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="eyebrow">nuestro rincón</div>
+  <h1>Este espacio es nuestro</h1>
+  <p>Un lugar pequeño para guardar fotos, videos, música, planear citas y no olvidar nunca las fechas que importan.</p>
+  <div class="counter" id="dayCounter"></div>
+</section>
+
+<section id="galeria">
+  <h2 class="section-title">Nuestra galería</h2>
+  <p class="section-sub">Los momentos que hemos ido guardando (fotos y videos).</p>
+  <div class="carousel-wrap">
+    <div class="carousel" id="carousel">
+      <div class="loading" id="carouselLoading">cargando…</div>
+      <div class="empty" id="carouselEmpty" style="display:none;">
+        <span>Aún no hay fotos ni videos aquí.</span>
+        <span class="hand" style="font-size:1.4rem; color:var(--gold);">sube el primero</span>
+      </div>
+    </div>
+    <div class="carousel-controls">
+      <button id="prevBtn" aria-label="Anterior">‹</button>
+      <div class="dots" id="dots"></div>
+      <button id="nextBtn" aria-label="Siguiente">›</button>
+    </div>
+    <div class="upload-box">
+      <label class="upload-btn" id="uploadLabel" for="fileInput">+ agregar foto o video</label>
+      <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+  </div>
+
+  <div class="music-list" id="musicList"></div>
+  <div class="upload-box">
+    <label class="upload-btn" id="uploadMusicLabel" for="musicInput">+ agregar música</label>
+    <input type="file" id="musicInput" accept="audio/*" multiple>
+  </div>
+</section>
+
+<section id="ruleta">
+  <h2 class="section-title">La ruleta de citas</h2>
+  <p class="section-sub">¿No saben qué hacer hoy? Que decida ella.</p>
+  <div class="wheel-area">
+    <div class="wheel-wrap">
+      <div class="wheel-pointer"></div>
+      <svg class="wheel" id="wheelSvg" viewBox="0 0 300 300"></svg>
+    </div>
+    <button class="spin-btn" id="spinBtn">girar la ruleta</button>
+    <div class="wheel-result" id="wheelResult"></div>
+    <details class="activities-edit">
+      <summary>editar actividades</summary>
+      <div id="actList"></div>
+      <button class="add-act" id="addAct">+ añadir actividad</button>
+    </details>
+  </div>
+</section>
+
+<section id="fechas">
+  <h2 class="section-title">Fechas y recuerdos</h2>
+  <p class="section-sub">Lo que no se nos puede olvidar.</p>
+  <div class="cal-grid">
+    <div class="card">
+      <h3>Fechas importantes</h3>
+      <div id="datesList"></div>
+      <p class="empty-note" id="datesEmpty">Todavía no han agregado fechas.</p>
+      <div class="mini-form">
+        <input type="text" id="dateLabel" placeholder="ej. Aniversario">
+        <input type="date" id="dateValue">
+        <button id="addDate">Agregar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Recordatorios</h3>
+      <div id="remList"></div>
+      <p class="empty-note" id="remEmpty">Sin recordatorios por ahora.</p>
+      <div class="mini-form">
+        <input type="text" id="remLabel" placeholder="ej. Llamarla al llegar">
+        <input type="date" id="remValue">
+        <button id="addRem">Agregar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>hecho con cariño, para nosotros</footer>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://njrvxafzdehlisetfcal.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_oZ4N-3gdsS3rtM7oMr_-vg_deIchMm1';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const BUCKET = 'media';
+
+async function renderCounter(){
+  const { data } = await supabase.from('relationship_meta').select('start_date').eq('id',1).single();
+  const start = new Date((data && data.start_date) || Date.now());
+  const now = new Date();
+  const days = Math.max(0, Math.floor((now - start) / 86400000));
+  document.getElementById('dayCounter').textContent = days > 0 ? `${days} días juntos y contando` : '';
+}
+renderCounter();
+
+let mediaItems = [];
+let current = 0;
+const carousel = document.getElementById('carousel');
+const dotsEl = document.getElementById('dots');
+const carouselEmpty = document.getElementById('carouselEmpty');
+const carouselLoading = document.getElementById('carouselLoading');
+
+function publicUrl(path){
+  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+async function loadMedia(){
+  const { data, error } = await supabase
+    .from('media_items')
+    .select('*')
+    .in('kind', ['photo','video'])
+    .order('created_at', { ascending: true });
+  carouselLoading.style.display = 'none';
+  if(error){ console.error(error); return; }
+  mediaItems = data || [];
+  if(current >= mediaItems.length) current = 0;
+  renderCarousel();
+}
+
+function renderCarousel(){
+  carousel.querySelectorAll('img, video').forEach(el=>el.remove());
+  dotsEl.innerHTML = '';
+  if(mediaItems.length === 0){
+    carouselEmpty.style.display = 'flex';
+    return;
+  }
+  carouselEmpty.style.display = 'none';
+  mediaItems.forEach((item, i)=>{
+    const url = publicUrl(item.storage_path);
+    let el;
+    if(item.kind === 'video'){
+      el = document.createElement('video');
+      el.src = url; el.controls = (i === current); el.muted = true;
+    } else {
+      el = document.createElement('img');
+      el.src = url;
+    }
+    if(i === current) el.classList.add('active');
+    carousel.appendChild(el);
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '');
+    d.addEventListener('click', ()=>{ current = i; renderCarousel(); });
+    dotsEl.appendChild(d);
+  });
+}
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  if(mediaItems.length === 0) return;
+  current = (current - 1 + mediaItems.length) % mediaItems.length;
+  renderCarousel();
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(mediaItems.length === 0) return;
+  current = (current + 1) % mediaItems.length;
+  renderCarousel();
+});
+
+const uploadStatus = document.getElementById('uploadStatus');
+document.getElementById('fileInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  if(files.length === 0) return;
+  document.getElementById('uploadLabel').classList.add('disabled');
+  for(const file of files){
+    uploadStatus.textContent = `Subiendo ${file.name}…`;
+    const kind = file.type.startsWith('video') ? 'video' : 'photo';
+    const path = `${kind}s/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file);
+    if(upErr){ uploadStatus.textContent = `Error subiendo ${file.name}: ${upErr.message}`; continue; }
+    await supabase.from('media_items').insert({ kind, storage_path: path, title: file.name });
+  }
+  uploadStatus.textContent = '';
+  document.getElementById('uploadLabel').classList.remove('disabled');
+  e.target.value = '';
+  await loadMedia();
+  current = mediaItems.length - 1;
+  renderCarousel();
+});
+
+setInterval(()=>{
+  if(mediaItems.length > 1){
+    current = (current + 1) % mediaItems.length;
+    renderCarousel();
+  }
+}, 5000);
+
+let musicItems = [];
+async function loadMusic(){
+  const { data, error } = await supabase
+    .from('media_items').select('*').eq('kind','audio')
+    .order('created_at', { ascending: true });
+  if(error){ console.error(error); return; }
+  musicItems = data || [];
+  renderMusic();
+}
+function renderMusic(){
+  const el = document.getElementById('musicList');
+  el.innerHTML = '';
+  musicItems.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'music-item';
+    const title = document.createElement('span');
+    title.className = 'title';
+    title.textContent = item.title || 'canción';
+    const audio = document.createElement('audio');
+    audio.src = publicUrl(item.storage_path);
+    audio.controls = true;
+    const del = document.createElement('button');
+    del.className = 'del'; del.textContent = '✕';
+    del.addEventListener('click', async ()=>{
+      await supabase.storage.from(BUCKET).remove([item.storage_path]);
+      await supabase.from('media_items').delete().eq('id', item.id);
+      loadMusic();
+    });
+    row.appendChild(title); row.appendChild(audio); row.appendChild(del);
+    el.appendChild(row);
+  });
+}
+document.getElementById('musicInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  if(files.length === 0) return;
+  document.getElementById('uploadMusicLabel').classList.add('disabled');
+  for(const file of files){
+    const path = `audio/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file);
+    if(upErr){ console.error(upErr); continue; }
+    await supabase.from('media_items').insert({ kind:'audio', storage_path: path, title: file.name });
+  }
+  document.getElementById('uploadMusicLabel').classList.remove('disabled');
+  e.target.value = '';
+  loadMusic();
+});
+
+const wheelSvg = document.getElementById('wheelSvg');
+const colors = ['#e3b23c','#d98a9c','#7c6a92','#c99a4f','#b6708a','#5f4b76'];
+let wheelRotation = 0;
+let activities = [];
+
+async function loadActivities(){
+  const { data, error } = await supabase.from('wheel_activities').select('*').order('sort_order');
+  if(error){ console.error(error); return; }
+  activities = data || [];
+  renderWheel();
+  renderActList();
+}
+
+function renderWheel(){
+  wheelSvg.innerHTML = '';
+  const n = activities.length || 1;
+  const slice = 360 / n;
+  const cx = 150, cy = 150, r = 148;
+  activities.forEach((act, i)=>{
+    const start = i * slice;
+    const end = start + slice;
+    const x1 = cx + r * Math.cos(Math.PI * (start-90) / 180);
+    const y1 = cy + r * Math.sin(Math.PI * (start-90) / 180);
+    const x2 = cx + r * Math.cos(Math.PI * (end-90) / 180);
+    const y2 = cy + r * Math.sin(Math.PI * (end-90) / 180);
+    const largeArc = slice > 180 ? 1 : 0;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z`);
+    path.setAttribute('fill', colors[i % colors.length]);
+    path.setAttribute('stroke', '#180f22');
+    path.setAttribute('stroke-width', '1.5');
+    wheelSvg.appendChild(path);
+
+    const mid = (start + end) / 2;
+    const tx = cx + (r*0.62) * Math.cos(Math.PI*(mid-90)/180);
+    const ty = cy + (r*0.62) * Math.sin(Math.PI*(mid-90)/180);
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', tx); text.setAttribute('y', ty);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('font-size','10.5');
+    text.setAttribute('font-family','Nunito Sans, sans-serif');
+    text.setAttribute('font-weight','700');
+    text.setAttribute('fill','#180f22');
+    text.setAttribute('transform', `rotate(${mid}, ${tx}, ${ty})`);
+    const words = (act.label || '').split(' ');
+    let line = ''; let lines = [];
+    words.forEach(w=>{
+      if((line + w).length > 12){ lines.push(line.trim()); line=''; }
+      line += w + ' ';
+    });
+    lines.push(line.trim());
+    lines.forEach((l, li)=>{
+      const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+      tspan.setAttribute('x', tx);
+      tspan.setAttribute('dy', li===0 ? 0 : 11);
+      tspan.textContent = l;
+      text.appendChild(tspan);
+    });
+    wheelSvg.appendChild(text);
+  });
+}
+
+document.getElementById('spinBtn').addEventListener('click', function(){
+  if(activities.length === 0) return;
+  this.disabled = true;
+  const n = activities.length;
+  const slice = 360/n;
+  const winner = Math.floor(Math.random()*n);
+  const targetAngle = 360*5 + (360 - (winner*slice + slice/2));
+  wheelRotation += targetAngle;
+  wheelSvg.style.transform = `rotate(${wheelRotation}deg)`;
+  document.getElementById('wheelResult').textContent = '';
+  setTimeout(()=>{
+    document.getElementById('wheelResult').textContent = activities[winner].label;
+    this.disabled = false;
+  }, 4100);
+});
+
+function renderActList(){
+  const el = document.getElementById('actList');
+  el.innerHTML = '';
+  activities.forEach((act, i)=>{
+    const row = document.createElement('div');
+    row.className = 'act-row';
+    const inp = document.createElement('input');
+    inp.value = act.label;
+    inp.addEventListener('change', async ()=>{
+      await supabase.from('wheel_activities').update({ label: inp.value }).eq('id', act.id);
+      activities[i].label = inp.value;
+      renderWheel();
+    });
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.addEventListener('click', async ()=>{
+      await supabase.from('wheel_activities').delete().eq('id', act.id);
+      loadActivities();
+    });
+    row.appendChild(inp); row.appendChild(btn);
+    el.appendChild(row);
+  });
+}
+document.getElementById('addAct').addEventListener('click', async ()=>{
+  const nextOrder = activities.length ? Math.max(...activities.map(a=>a.sort_order)) + 1 : 1;
+  await supabase.from('wheel_activities').insert({ label: 'Nueva actividad', sort_order: nextOrder });
+  loadActivities();
+});
+
+let importantDates = [];
+async function loadDates(){
+  const { data, error } = await supabase.from('important_dates').select('*').order('event_date');
+  if(error){ console.error(error); return; }
+  importantDates = data || [];
+  renderDates();
+}
+function renderDates(){
+  const list = document.getElementById('datesList');
+  list.innerHTML = '';
+  document.getElementById('datesEmpty').style.display = importantDates.length ? 'none' : 'block';
+  importantDates.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'date-item';
+    const d = new Date(item.event_date + 'T00:00:00');
+    const formatted = d.toLocaleDateString('es-MX', {day:'numeric', month:'short', year:'numeric'});
+    row.innerHTML = `<span class="label">${item.label}</span><span class="when">${formatted}</span>`;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', async ()=>{
+      await supabase.from('important_dates').delete().eq('id', item.id);
+      loadDates();
+    });
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+document.getElementById('addDate').addEventListener('click', async ()=>{
+  const label = document.getElementById('dateLabel').value.trim();
+  const value = document.getElementById('dateValue').value;
+  if(!label || !value) return;
+  await supabase.from('important_dates').insert({ label, event_date: value });
+  document.getElementById('dateLabel').value=''; document.getElementById('dateValue').value='';
+  loadDates();
+});
+
+let reminders = [];
+async function loadReminders(){
+  const { data, error } = await supabase.from('reminders').select('*').order('due_date', { ascending: true, nullsFirst: false });
+  if(error){ console.error(error); return; }
+  reminders = data || [];
+  renderReminders();
+}
+function renderReminders(){
+  const list = document.getElementById('remList');
+  list.innerHTML = '';
+  document.getElementById('remEmpty').style.display = reminders.length ? 'none' : 'block';
+  reminders.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'rem-item';
+    const formatted = item.due_date ? new Date(item.due_date+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric', month:'short'}) : '';
+    row.innerHTML = `<span class="label">${item.label}</span><span class="when">${formatted}</span>`;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', async ()=>{
+      await supabase.from('reminders').delete().eq('id', item.id);
+      loadReminders();
+    });
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+document.getElementById('addRem').addEventListener('click', async ()=>{
+  const label = document.getElementById('remLabel').value.trim();
+  const value = document.getElementById('remValue').value || null;
+  if(!label) return;
+  await supabase.from('reminders').insert({ label, due_date: value });
+  document.getElementById('remLabel').value=''; document.getElementById('remValue').value='';
+  loadReminders();
+});
+
+loadMedia();
+loadMusic();
+loadActivities();
+loadDates();
+loadReminders();
+</script>
+</body>
+</html>
