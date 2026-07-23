@@ -54,9 +54,11 @@
   }
   .carousel img, .carousel video{
     position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    opacity:0; transition:opacity .8s ease;
+    opacity:0; transition:opacity 1s ease-in-out; z-index:1;
   }
-  .carousel img.active, .carousel video.active{opacity:1;}
+  .carousel img.active, .carousel video.active{opacity:1; z-index:2;}
+  .carousel video{pointer-events:none;}
+  .carousel video.active{pointer-events:auto;}
   .carousel .empty{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     flex-direction:column; gap:.5rem; color:var(--muted); text-align:center; padding:2rem;
@@ -85,6 +87,80 @@
   .upload-btn.disabled{opacity:.5; pointer-events:none;}
   input[type=file]{display:none;}
   .upload-status{margin-top:.8rem; color:var(--muted); font-size:.85rem; min-height:1.2rem;}
+  .ghost-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    background:none; border:1px solid var(--line); color:var(--muted);
+    padding:.6rem 1.2rem; border-radius:30px; cursor:pointer; font-family:'Nunito Sans'; font-weight:600;
+    font-size:.9rem; transition:.2s;
+  }
+  .ghost-btn:hover{border-color:var(--gold); color:var(--gold);}
+
+  /* Libro de recuerdos (modal grid) */
+  .book-overlay{
+    position:fixed; inset:0; background:rgba(10,6,16,0.92); z-index:100;
+    display:none; align-items:flex-start; justify-content:center; overflow-y:auto;
+    padding: 4rem 5vw;
+  }
+  .book-overlay.open{display:flex;}
+  .book-panel{max-width:1000px; width:100%;}
+  .book-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;}
+  .book-header h3{font-style:italic; font-size:1.8rem;}
+  .book-close{
+    background:none; border:1px solid var(--line); color:var(--parchment); width:36px; height:36px;
+    border-radius:50%; cursor:pointer; font-size:1.1rem; flex-shrink:0;
+  }
+  .book-close:hover{border-color:var(--gold); color:var(--gold);}
+  .book-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:1rem;
+  }
+  .book-item{
+    position:relative; aspect-ratio: 3/4; border-radius:10px; overflow:hidden; cursor:pointer;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .book-item img, .book-item video{
+    width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s ease;
+  }
+  .book-item:hover img, .book-item:hover video{transform:scale(1.06);}
+  .book-item .play-badge{
+    position:absolute; top:8px; right:8px; background:rgba(24,15,34,0.75); color:var(--gold);
+    border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    font-size:.8rem;
+  }
+  .book-item .book-date{
+    position:absolute; bottom:0; left:0; right:0; padding:.4rem .5rem .3rem;
+    background:linear-gradient(transparent, rgba(0,0,0,0.75));
+    font-size:.72rem; color:var(--parchment); font-family:'Caveat',cursive; font-size:1rem;
+  }
+
+  /* Lightbox pantalla completa */
+  .lightbox-overlay{
+    position:fixed; inset:0; background:rgba(6,3,10,0.97); z-index:200;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:1rem;
+    padding:2rem;
+  }
+  .lightbox-overlay.open{display:flex;}
+  .lightbox-content{max-width:90vw; max-height:75vh; display:flex; align-items:center; justify-content:center;}
+  .lightbox-content img, .lightbox-content video{
+    max-width:90vw; max-height:75vh; border-radius:12px; object-fit:contain;
+  }
+  .lightbox-date{font-family:'Caveat', cursive; font-size:1.5rem; color:var(--gold);}
+  .lightbox-close{
+    position:absolute; top:1.5rem; right:1.5rem; background:none; border:1px solid var(--line);
+    color:var(--parchment); width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem;
+  }
+  .lightbox-close:hover{border-color:var(--gold); color:var(--gold);}
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); background:none; border:1px solid var(--line);
+    color:var(--gold); width:44px; height:44px; border-radius:50%; cursor:pointer; font-size:1.3rem;
+  }
+  .lightbox-nav:hover{background:var(--gold); color:var(--bg);}
+  .lightbox-prev{left:1.5rem;}
+  .lightbox-next{right:1.5rem;}
+  @media (max-width:640px){
+    .lightbox-nav{width:36px; height:36px; font-size:1.1rem;}
+    .lightbox-close{width:34px; height:34px;}
+    .book-overlay{padding:2.5rem 5vw;}
+  }
 
   .music-list{max-width:760px; margin:2rem auto 0; display:flex; flex-direction:column; gap:.6rem;}
   .music-item{
@@ -197,11 +273,12 @@
       <div class="dots" id="dots"></div>
       <button id="nextBtn" aria-label="Siguiente">›</button>
     </div>
-    <div class="upload-box">
+    <div class="upload-box" style="display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; margin-top:2rem;">
       <label class="upload-btn" id="uploadLabel" for="fileInput">+ agregar foto o video</label>
-      <input type="file" id="fileInput" accept="image/*,video/*" multiple>
-      <div class="upload-status" id="uploadStatus"></div>
+      <button class="ghost-btn" id="openBookBtn">ver todas las fotos</button>
     </div>
+    <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+    <div class="upload-status" id="uploadStatus"></div>
   </div>
 
   <div class="music-list" id="musicList"></div>
@@ -210,6 +287,24 @@
     <input type="file" id="musicInput" accept="audio/*" multiple>
   </div>
 </section>
+
+<div class="book-overlay" id="bookOverlay">
+  <div class="book-panel">
+    <div class="book-header">
+      <h3>Todos nuestros recuerdos</h3>
+      <button class="book-close" id="closeBookBtn">✕</button>
+    </div>
+    <div class="book-grid" id="bookGrid"></div>
+  </div>
+</div>
+
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
+  <div class="lightbox-content" id="lightboxContent"></div>
+  <div class="lightbox-date" id="lightboxDate"></div>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
+</div>
 
 <section id="ruleta">
   <h2 class="section-title">La ruleta de citas</h2>
@@ -296,10 +391,18 @@ async function loadMedia(){
   if(error){ console.error(error); return; }
   mediaItems = data || [];
   if(current >= mediaItems.length) current = 0;
-  renderCarousel();
+  buildCarousel();
+  renderBook();
 }
 
-function renderCarousel(){
+function formatDate(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
+}
+
+/* Construye los elementos del carrusel una sola vez (permite crossfade real) */
+function buildCarousel(){
   carousel.querySelectorAll('img, video').forEach(el=>el.remove());
   dotsEl.innerHTML = '';
   if(mediaItems.length === 0){
@@ -312,7 +415,7 @@ function renderCarousel(){
     let el;
     if(item.kind === 'video'){
       el = document.createElement('video');
-      el.src = url; el.controls = (i === current); el.muted = true;
+      el.src = url; el.muted = true; el.loop = true; el.playsInline = true; el.controls = true;
     } else {
       el = document.createElement('img');
       el.src = url;
@@ -321,19 +424,36 @@ function renderCarousel(){
     carousel.appendChild(el);
     const d = document.createElement('div');
     d.className = 'dot' + (i === current ? ' active' : '');
-    d.addEventListener('click', ()=>{ current = i; renderCarousel(); });
+    d.addEventListener('click', ()=>{ setActiveSlide(i); });
     dotsEl.appendChild(d);
   });
+  updateSlideVideoPlayback();
 }
+
+/* Solo alterna la clase activa entre elementos ya existentes -> transición de opacidad (fade in/out) */
+function setActiveSlide(i){
+  if(mediaItems.length === 0) return;
+  current = i;
+  const nodes = carousel.querySelectorAll('img, video');
+  nodes.forEach((el, idx)=> el.classList.toggle('active', idx === current));
+  const dots = dotsEl.querySelectorAll('.dot');
+  dots.forEach((d, idx)=> d.classList.toggle('active', idx === current));
+  updateSlideVideoPlayback();
+}
+
+function updateSlideVideoPlayback(){
+  carousel.querySelectorAll('video').forEach((v, idx)=>{
+    if(idx === current){ v.play().catch(()=>{}); } else { v.pause(); }
+  });
+}
+
 document.getElementById('prevBtn').addEventListener('click', ()=>{
   if(mediaItems.length === 0) return;
-  current = (current - 1 + mediaItems.length) % mediaItems.length;
-  renderCarousel();
+  setActiveSlide((current - 1 + mediaItems.length) % mediaItems.length);
 });
 document.getElementById('nextBtn').addEventListener('click', ()=>{
   if(mediaItems.length === 0) return;
-  current = (current + 1) % mediaItems.length;
-  renderCarousel();
+  setActiveSlide((current + 1) % mediaItems.length);
 });
 
 const uploadStatus = document.getElementById('uploadStatus');
@@ -353,16 +473,109 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
   document.getElementById('uploadLabel').classList.remove('disabled');
   e.target.value = '';
   await loadMedia();
-  current = mediaItems.length - 1;
-  renderCarousel();
+  setActiveSlide(mediaItems.length - 1);
 });
 
-setInterval(()=>{
+let autoAdvance = setInterval(()=>{
   if(mediaItems.length > 1){
-    current = (current + 1) % mediaItems.length;
-    renderCarousel();
+    setActiveSlide((current + 1) % mediaItems.length);
   }
 }, 5000);
+
+/* ---------- Libro de recuerdos (ver todas las fotos) ---------- */
+const bookOverlay = document.getElementById('bookOverlay');
+const bookGrid = document.getElementById('bookGrid');
+
+function renderBook(){
+  bookGrid.innerHTML = '';
+  mediaItems.forEach((item, i)=>{
+    const tile = document.createElement('div');
+    tile.className = 'book-item';
+    const url = publicUrl(item.storage_path);
+    if(item.kind === 'video'){
+      const vid = document.createElement('video');
+      vid.src = url; vid.muted = true;
+      tile.appendChild(vid);
+      const badge = document.createElement('div');
+      badge.className = 'play-badge';
+      badge.textContent = '▶';
+      tile.appendChild(badge);
+    } else {
+      const img = document.createElement('img');
+      img.src = url;
+      tile.appendChild(img);
+    }
+    const dateTag = document.createElement('div');
+    dateTag.className = 'book-date';
+    dateTag.textContent = formatDate(item.created_at);
+    tile.appendChild(dateTag);
+    tile.addEventListener('click', ()=> openLightbox(i));
+    bookGrid.appendChild(tile);
+  });
+}
+
+document.getElementById('openBookBtn').addEventListener('click', ()=>{
+  renderBook();
+  bookOverlay.classList.add('open');
+});
+document.getElementById('closeBookBtn').addEventListener('click', ()=>{
+  bookOverlay.classList.remove('open');
+});
+bookOverlay.addEventListener('click', (e)=>{
+  if(e.target === bookOverlay) bookOverlay.classList.remove('open');
+});
+
+/* ---------- Lightbox pantalla completa ---------- */
+const lightboxOverlay = document.getElementById('lightboxOverlay');
+const lightboxContent = document.getElementById('lightboxContent');
+const lightboxDate = document.getElementById('lightboxDate');
+let lightboxIndex = 0;
+
+function openLightbox(i){
+  lightboxIndex = i;
+  renderLightbox();
+  lightboxOverlay.classList.add('open');
+}
+function renderLightbox(){
+  const item = mediaItems[lightboxIndex];
+  if(!item) return;
+  lightboxContent.innerHTML = '';
+  const url = publicUrl(item.storage_path);
+  let el;
+  if(item.kind === 'video'){
+    el = document.createElement('video');
+    el.src = url; el.controls = true; el.autoplay = true;
+  } else {
+    el = document.createElement('img');
+    el.src = url;
+  }
+  lightboxContent.appendChild(el);
+  lightboxDate.textContent = formatDate(item.created_at);
+}
+document.getElementById('lightboxClose').addEventListener('click', ()=>{
+  lightboxOverlay.classList.remove('open');
+  lightboxContent.innerHTML = '';
+});
+lightboxOverlay.addEventListener('click', (e)=>{
+  if(e.target === lightboxOverlay){
+    lightboxOverlay.classList.remove('open');
+    lightboxContent.innerHTML = '';
+  }
+});
+document.getElementById('lightboxPrev').addEventListener('click', ()=>{
+  lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length;
+  renderLightbox();
+});
+document.getElementById('lightboxNext').addEventListener('click', ()=>{
+  lightboxIndex = (lightboxIndex + 1) % mediaItems.length;
+  renderLightbox();
+});
+document.addEventListener('keydown', (e)=>{
+  if(!lightboxOverlay.classList.contains('open')) return;
+  if(e.key === 'Escape'){ lightboxOverlay.classList.remove('open'); lightboxContent.innerHTML=''; }
+  if(e.key === 'ArrowLeft'){ lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length; renderLightbox(); }
+  if(e.key === 'ArrowRight'){ lightboxIndex = (lightboxIndex + 1) % mediaItems.length; renderLightbox(); }
+});
 
 let musicItems = [];
 async function loadMusic(){
