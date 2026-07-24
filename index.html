@@ -6,6 +6,8 @@
 <title>Nuestro rincón</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Caveat:wght@500;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <style>
   :root{
     --bg:#180f22;
@@ -89,7 +91,8 @@
   .upload-status{margin-top:.8rem; color:var(--muted); font-size:.85rem; min-height:1.2rem;}
   .ghost-btn{
     display:inline-flex; align-items:center; gap:.5rem;
-    background:none; border:1px solid var(--line); color:var(--muted);
+    background: rgba(255,255,255,0.04); backdrop-filter: blur(10px);
+    border:1px solid var(--line); color:var(--muted);
     padding:.6rem 1.2rem; border-radius:30px; cursor:pointer; font-family:'Nunito Sans'; font-weight:600;
     font-size:.9rem; transition:.2s;
   }
@@ -257,6 +260,39 @@
   .empty-note{color:var(--muted); font-size:.9rem; font-style:italic;}
   footer{text-align:center; padding:3rem; color:var(--muted); font-family:'Caveat', cursive; font-size:1.3rem;}
 
+  /* ---------- Liquid glass ---------- */
+  .glass{
+    position:relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    backdrop-filter: blur(18px) saturate(150%) url(#liquid-glass-distort);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 0 40px rgba(227,178,60,0.03);
+  }
+  .glass::before{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background: linear-gradient(120deg, rgba(255,255,255,0.10) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.05) 100%);
+    mix-blend-mode: overlay;
+  }
+  .glass-nav{
+    position: fixed; top: 1.2rem; left:50%; transform: translateX(-50%); z-index: 60;
+    display:flex; gap: 1.4rem; padding: .7rem 1.4rem; border-radius: 40px;
+  }
+  .glass-nav a{
+    color: var(--muted); text-decoration:none; font-size:.82rem; letter-spacing:.03em;
+    font-weight:600; transition:.2s;
+  }
+  .glass-nav a:hover{color: var(--gold);}
+  .glass-nav{transition: box-shadow .3s ease, padding .3s ease;}
+  .glass-nav.scrolled{box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);}
+  @media (max-width:640px){
+    .glass-nav{gap:.8rem; padding:.55rem 1rem; top:.8rem;}
+    .glass-nav a{font-size:.7rem;}
+  }
+
   @media (max-width: 640px){
     section{padding: 3.5rem 6vw;}
     .hero{min-height:92vh; padding: 3rem 6vw;}
@@ -280,6 +316,19 @@
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute;">
+  <filter id="liquid-glass-distort">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<nav class="glass glass-nav">
+  <a href="#galeria">Galería</a>
+  <a href="#ruleta">Ruleta</a>
+  <a href="#fechas">Fechas</a>
+</nav>
+
 <section class="hero">
   <div class="eyebrow">nuestro rincón</div>
   <h1>Este espacio es nuestro</h1>
@@ -291,7 +340,7 @@
   <h2 class="section-title">Nuestra galería</h2>
   <p class="section-sub">Los momentos que hemos ido guardando (fotos y videos).</p>
   <div class="carousel-wrap">
-    <div class="carousel" id="carousel">
+    <div class="carousel glass" id="carousel">
       <div class="loading" id="carouselLoading">cargando…</div>
       <div class="empty" id="carouselEmpty" style="display:none;">
         <span>Aún no hay fotos ni videos aquí.</span>
@@ -320,7 +369,7 @@
 </section>
 
 <div class="book-overlay" id="bookOverlay">
-  <div class="book-panel">
+  <div class="book-panel glass">
     <div class="book-header">
       <h3>Todos nuestros recuerdos</h3>
       <button class="book-close" id="closeBookBtn">✕</button>
@@ -359,7 +408,7 @@
   <h2 class="section-title">Fechas y recuerdos</h2>
   <p class="section-sub">Lo que no se nos puede olvidar.</p>
   <div class="cal-grid">
-    <div class="card">
+    <div class="card glass">
       <h3>Fechas importantes</h3>
       <div id="datesList"></div>
       <p class="empty-note" id="datesEmpty">Todavía no han agregado fechas.</p>
@@ -369,7 +418,7 @@
         <button id="addDate">Agregar</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card glass">
       <h3>Recordatorios</h3>
       <div id="remList"></div>
       <p class="empty-note" id="remEmpty">Sin recordatorios por ahora.</p>
@@ -918,6 +967,84 @@ loadMusic();
 loadActivities();
 loadDates();
 loadReminders();
+
+/* ---------- GSAP + ScrollTrigger ---------- */
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero: entrada suave + ligero parallax al hacer scroll
+gsap.from('.hero .eyebrow', { opacity:0, y:20, duration:1, delay:.2, ease:'power2.out' });
+gsap.from('.hero h1', { opacity:0, y:30, duration:1.1, delay:.35, ease:'power2.out' });
+gsap.from('.hero p', { opacity:0, y:20, duration:1, delay:.55, ease:'power2.out' });
+gsap.from('.hero .counter', { opacity:0, y:15, duration:1, delay:.75, ease:'power2.out' });
+gsap.to('.hero', {
+  backgroundPosition: '50% 20%',
+  scrollTrigger: { trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+});
+gsap.to('.hero h1, .hero p, .hero .counter, .hero .eyebrow', {
+  y: -60, opacity: 0.3,
+  scrollTrigger: { trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+});
+
+// Títulos de sección: aparecen al entrar en viewport
+gsap.utils.toArray('.section-title').forEach(el=>{
+  gsap.from(el, {
+    opacity:0, y:40, duration:.9, ease:'power2.out',
+    scrollTrigger: { trigger: el, start:'top 85%' }
+  });
+});
+gsap.utils.toArray('.section-sub').forEach(el=>{
+  gsap.from(el, {
+    opacity:0, y:24, duration:.9, delay:.1, ease:'power2.out',
+    scrollTrigger: { trigger: el, start:'top 85%' }
+  });
+});
+
+// Carrusel: aparece con escala + fade
+gsap.from('.carousel-wrap', {
+  opacity:0, y:50, scale:.96, duration:1, ease:'power2.out',
+  scrollTrigger: { trigger:'.carousel-wrap', start:'top 80%' }
+});
+
+// Ruleta: entrada tipo "pop"
+gsap.from('.wheel-wrap', {
+  opacity:0, scale:.7, rotate:-15, duration:1, ease:'back.out(1.6)',
+  scrollTrigger: { trigger:'.wheel-area', start:'top 75%' }
+});
+gsap.from('.spin-btn, .wheel-result', {
+  opacity:0, y:20, duration:.8, delay:.2, ease:'power2.out',
+  scrollTrigger: { trigger:'.wheel-area', start:'top 70%' }
+});
+
+// Tarjetas de fechas/recordatorios: entrada escalonada
+gsap.from('.cal-grid .card', {
+  opacity:0, y:40, duration:.9, stagger:.15, ease:'power2.out',
+  scrollTrigger: { trigger:'.cal-grid', start:'top 80%' }
+});
+
+// Footer
+gsap.from('footer', {
+  opacity:0, y:20, duration:.9, ease:'power2.out',
+  scrollTrigger: { trigger:'footer', start:'top 90%' }
+});
+
+// Nav de vidrio: se atenúa ligeramente al hacer scroll, vuelve a intensificarse arriba
+ScrollTrigger.create({
+  start: 'top -80',
+  end: 99999,
+  toggleClass: { targets: '.glass-nav', className: 'scrolled' }
+});
+
+// Re-anima elementos nuevos del libro de recuerdos y música cuando se generan dinámicamente
+function animateBookTiles(){
+  gsap.from('.book-item', { opacity:0, y:20, duration:.5, stagger:.03, ease:'power2.out' });
+}
+function animateMusicRows(){
+  gsap.from('.music-item', { opacity:0, x:-20, duration:.5, stagger:.06, ease:'power2.out' });
+}
+const _origRenderBook = renderBook;
+renderBook = function(){ _origRenderBook(); animateBookTiles(); };
+const _origRenderMusic = renderMusic;
+renderMusic = function(){ _origRenderMusic(); animateMusicRows(); };
 </script>
 </body>
 </html>
