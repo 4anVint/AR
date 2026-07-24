@@ -263,20 +263,31 @@
   /* ---------- Liquid glass ---------- */
   .glass{
     position:relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
-    backdrop-filter: blur(18px) saturate(150%) url(#liquid-glass-distort);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.18);
     box-shadow:
-      0 8px 32px rgba(0,0,0,0.35),
-      inset 0 1px 0 rgba(255,255,255,0.15),
-      inset 0 0 40px rgba(227,178,60,0.03);
+      0 10px 40px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.25),
+      inset 0 0 50px rgba(227,178,60,0.05);
   }
+  /* Brillo diagonal que simula la curvatura del vidrio */
   .glass::before{
-    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-    background: linear-gradient(120deg, rgba(255,255,255,0.10) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.05) 100%);
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
+    background: linear-gradient(120deg, rgba(255,255,255,0.16) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.08) 100%);
     mix-blend-mode: overlay;
   }
+  /* Capa de distorsión "líquida" (usa el filtro SVG sobre una copia difuminada del fondo) */
+  .glass::after{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
+    backdrop-filter: url(#liquid-glass-distort) blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity:.6;
+  }
+  .glass > *{ position:relative; z-index:2; }
+  /* El elemento img/video del carrusel debe seguir ocupando todo el espacio */
+  .carousel.glass > img, .carousel.glass > video{ position:absolute; }
   .glass-nav{
     position: fixed; top: 1.2rem; left:50%; transform: translateX(-50%); z-index: 60;
     display:flex; gap: 1.4rem; padding: .7rem 1.4rem; border-radius: 40px;
@@ -972,18 +983,22 @@ loadReminders();
 gsap.registerPlugin(ScrollTrigger);
 
 // Hero: entrada suave + ligero parallax al hacer scroll
-gsap.from('.hero .eyebrow', { opacity:0, y:20, duration:1, delay:.2, ease:'power2.out' });
-gsap.from('.hero h1', { opacity:0, y:30, duration:1.1, delay:.35, ease:'power2.out' });
-gsap.from('.hero p', { opacity:0, y:20, duration:1, delay:.55, ease:'power2.out' });
-gsap.from('.hero .counter', { opacity:0, y:15, duration:1, delay:.75, ease:'power2.out' });
-gsap.to('.hero', {
-  backgroundPosition: '50% 20%',
-  scrollTrigger: { trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+// Hero: SOLO animación ligada al scroll (nada se anima al cargar la página).
+// El texto se mantiene visible y fijo hasta que empiezas a hacer scroll,
+// momento en el que se desvanece suavemente a lo largo de una distancia larga.
+const heroTimeline = gsap.timeline({
+  scrollTrigger: {
+    trigger: '.hero',
+    start: 'top top',
+    end: '+=140%',
+    scrub: 1
+  }
 });
-gsap.to('.hero h1, .hero p, .hero .counter, .hero .eyebrow', {
-  y: -60, opacity: 0.3,
-  scrollTrigger: { trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
-});
+heroTimeline
+  .to('.hero .eyebrow', { y: -40, opacity: 0, ease:'none' }, 0)
+  .to('.hero h1', { y: -70, opacity: 0, ease:'none' }, 0.05)
+  .to('.hero p', { y: -50, opacity: 0, ease:'none' }, 0.1)
+  .to('.hero .counter', { y: -30, opacity: 0, ease:'none' }, 0.15);
 
 // Títulos de sección: aparecen al entrar en viewport
 gsap.utils.toArray('.section-title').forEach(el=>{
