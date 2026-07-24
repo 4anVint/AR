@@ -6,381 +6,972 @@
 <title>Nuestro rincón</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Caveat:wght@500;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- GSAP y ScrollTrigger -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <style>
-  :root{
-    --bg:#180f22;
-    --bg-2:#241631;
-    --card:#2c1c3d;
-    --parchment:#f3e6d3;
-    --muted:#c9b8d6;
-    --gold:#e3b23c;
-    --rose:#d98a9c;
-    --line: rgba(227,178,60,0.25);
+  :root {
+    --bg: #180f22;
+    --bg-2: #241631;
+    --card: #2c1c3d;
+    --parchment: #f3e6d3;
+    --muted: #c9b8d6;
+    --gold: #e3b23c;
+    --rose: #d98a9c;
+    --line: rgba(227, 178, 60, 0.25);
+    --glass-bg: rgba(44, 28, 61, 0.65);
+    --glass-border: rgba(227, 178, 60, 0.15);
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
     background: var(--bg);
     color: var(--parchment);
-    font-family:'Nunito Sans', sans-serif;
-    line-height:1.6;
-    overflow-x:hidden;
+    font-family: 'Nunito Sans', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
   }
-  h1,h2,h3{font-family:'Cormorant Garamond', serif; font-weight:600;}
-  .hand{font-family:'Caveat', cursive;}
-  section{padding: 5rem 6vw;}
-  .hero{
-    min-height:100vh;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center;
-    position:relative;
-    background: radial-gradient(ellipse at 50% 30%, var(--bg-2), var(--bg) 70%);
+  
+  h1, h2, h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
   }
-  .hero .eyebrow{
-    font-family:'Caveat', cursive;
-    font-size: 1.6rem;
-    color: var(--rose);
-    margin-bottom: 0.5rem;
+  
+  .hand {
+    font-family: 'Caveat', cursive;
   }
-  .hero h1{font-size: clamp(2.5rem, 7vw, 5rem); font-style:italic; color:var(--parchment);}
-  .hero p{color:var(--muted); margin-top:1rem; font-size:1.1rem; max-width:34rem;}
-  .hero .counter{margin-top:2.5rem; font-family:'Caveat',cursive; font-size:1.8rem; color:var(--gold);}
-  .section-title{font-size: clamp(1.8rem, 4vw, 2.6rem); font-style:italic; margin-bottom:.5rem;}
-  .section-sub{color:var(--muted); margin-bottom:2.5rem; max-width:36rem;}
-
-  .carousel-wrap{position:relative; max-width:760px; margin:0 auto;}
-  .carousel{
-    position:relative; aspect-ratio: 4/3; border-radius:18px; overflow:hidden;
-    background:var(--card); border:1px solid var(--line);
+  
+  section {
+    padding: 5rem 6vw;
+    opacity: 0;
+    transform: translateY(40px);
   }
-  .carousel img, .carousel video{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    opacity:0; transition:opacity 1s ease-in-out; z-index:1;
+  
+  section.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.8s ease, transform 0.8s ease;
   }
-  .carousel img.active, .carousel video.active{opacity:1; z-index:2;}
-  .carousel video{pointer-events:none;}
-  .carousel video.active{pointer-events:auto;}
-  .carousel .empty{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:.5rem; color:var(--muted); text-align:center; padding:2rem;
+  
+  /* === LIQUID GLASS === */
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    overflow: hidden;
   }
-  .carousel .loading{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    color:var(--muted); font-family:'Caveat',cursive; font-size:1.4rem;
+  
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(227, 178, 60, 0.2), transparent 50%, rgba(217, 138, 156, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
-  .carousel-controls{display:flex; justify-content:center; align-items:center; gap:1.2rem; margin-top:1.2rem;}
-  .carousel-controls button{
-    background:none; border:1px solid var(--line); color:var(--gold); width:38px; height:38px;
-    border-radius:50%; cursor:pointer; font-size:1.1rem; transition:.2s;
-  }
-  .carousel-controls button:hover{background:var(--gold); color:var(--bg);}
-  .dots{display:flex; gap:6px; flex-wrap:wrap; max-width:200px; justify-content:center;}
-  .dot{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer;}
-  .dot.active{background:var(--gold);}
-  .upload-box{margin-top:2rem; text-align:center;}
-  .upload-btn{
-    display:inline-flex; align-items:center; gap:.5rem;
-    background:transparent; border:1px solid var(--gold); color:var(--gold);
-    padding:.7rem 1.4rem; border-radius:30px; cursor:pointer; font-family:'Nunito Sans'; font-weight:600;
-    transition:.2s;
-  }
-  .upload-btn:hover{background:var(--gold); color:var(--bg);}
-  .upload-btn.disabled{opacity:.5; pointer-events:none;}
-  input[type=file]{display:none;}
-  .upload-status{margin-top:.8rem; color:var(--muted); font-size:.85rem; min-height:1.2rem;}
-  .ghost-btn{
-    display:inline-flex; align-items:center; gap:.5rem;
-    background: rgba(255,255,255,0.04); backdrop-filter: blur(10px);
-    border:1px solid var(--line); color:var(--muted);
-    padding:.6rem 1.2rem; border-radius:30px; cursor:pointer; font-family:'Nunito Sans'; font-weight:600;
-    font-size:.9rem; transition:.2s;
-  }
-  .ghost-btn:hover{border-color:var(--gold); color:var(--gold);}
-
-  /* Panel de carga */
-  .upload-panel{
-    max-width:460px; margin:1.2rem auto 0; display:flex; flex-direction:column; gap:.5rem;
-  }
-  .upload-row{
-    display:flex; align-items:center; gap:.7rem; background:var(--card); border:1px solid var(--line);
-    border-radius:10px; padding:.6rem .9rem; font-size:.85rem;
-  }
-  .upload-row .spinner{
-    width:16px; height:16px; border-radius:50%; border:2px solid var(--line);
-    border-top-color:var(--gold); flex-shrink:0; animation:spin .8s linear infinite;
-  }
-  .upload-row.done .spinner{
-    border:none; display:flex; align-items:center; justify-content:center;
-    animation:none; color:var(--gold);
-  }
-  .upload-row.done .spinner::after{content:'✓';}
-  .upload-row.error .spinner{border:none; color:var(--rose);}
-  .upload-row.error .spinner::after{content:'✕';}
-  .upload-row .fname{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .upload-row .fstatus{color:var(--muted); font-size:.75rem; flex-shrink:0;}
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-
-  /* Timeline dentro del libro */
-  .book-section{margin-bottom:2.6rem;}
-  .book-section h4{
-    font-family:'Cormorant Garamond', serif; font-style:italic; font-size:1.3rem;
-    color:var(--gold); margin-bottom:1rem; padding-bottom:.5rem; border-bottom:1px solid var(--line);
-  }
-
-  /* Libro de recuerdos (modal grid) */
-  .book-overlay{
-    position:fixed; inset:0; background:rgba(10,6,16,0.92); z-index:100;
-    display:none; align-items:flex-start; justify-content:center; overflow-y:auto;
-    padding: 4rem 5vw;
-  }
-  .book-overlay.open{display:flex;}
-  .book-panel{max-width:1000px; width:100%;}
-  .book-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;}
-  .book-header h3{font-style:italic; font-size:1.8rem;}
-  .book-close{
-    background:none; border:1px solid var(--line); color:var(--parchment); width:36px; height:36px;
-    border-radius:50%; cursor:pointer; font-size:1.1rem; flex-shrink:0;
-  }
-  .book-close:hover{border-color:var(--gold); color:var(--gold);}
-  .book-grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:1rem;
-  }
-  .book-item{
-    position:relative; aspect-ratio: 3/4; border-radius:10px; overflow:hidden; cursor:pointer;
-    background:var(--card); border:1px solid var(--line);
-  }
-  .book-item img, .book-item video{
-    width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s ease;
-  }
-  .book-item:hover img, .book-item:hover video{transform:scale(1.06);}
-  .book-item .play-badge{
-    position:absolute; top:8px; right:8px; background:rgba(24,15,34,0.75); color:var(--gold);
-    border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center;
-    font-size:.8rem;
-  }
-  .book-item .book-date{
-    position:absolute; bottom:0; left:0; right:0; padding:.4rem .5rem .3rem;
-    background:linear-gradient(transparent, rgba(0,0,0,0.75));
-    font-size:.72rem; color:var(--parchment); font-family:'Caveat',cursive; font-size:1rem;
-  }
-
-  /* Lightbox pantalla completa */
-  .lightbox-overlay{
-    position:fixed; inset:0; background:rgba(6,3,10,0.97); z-index:200;
-    display:none; align-items:center; justify-content:center; flex-direction:column; gap:1rem;
-    padding:2rem;
-  }
-  .lightbox-overlay.open{display:flex;}
-  .lightbox-content{max-width:90vw; max-height:75vh; display:flex; align-items:center; justify-content:center;}
-  .lightbox-content img, .lightbox-content video{
-    max-width:90vw; max-height:75vh; border-radius:12px; object-fit:contain;
-  }
-  .lightbox-date{font-family:'Caveat', cursive; font-size:1.5rem; color:var(--gold);}
-  .lightbox-close{
-    position:absolute; top:1.5rem; right:1.5rem; background:none; border:1px solid var(--line);
-    color:var(--parchment); width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem;
-  }
-  .lightbox-close:hover{border-color:var(--gold); color:var(--gold);}
-  .lightbox-nav{
-    position:absolute; top:50%; transform:translateY(-50%); background:none; border:1px solid var(--line);
-    color:var(--gold); width:44px; height:44px; border-radius:50%; cursor:pointer; font-size:1.3rem;
-  }
-  .lightbox-nav:hover{background:var(--gold); color:var(--bg);}
-  .lightbox-prev{left:1.5rem;}
-  .lightbox-next{right:1.5rem;}
-  @media (max-width:640px){
-    .lightbox-nav{width:36px; height:36px; font-size:1.1rem;}
-    .lightbox-close{width:34px; height:34px;}
-    .book-overlay{padding:2.5rem 5vw;}
-  }
-
-  .music-list{max-width:760px; margin:2rem auto 0; display:flex; flex-direction:column; gap:.6rem;}
-  .music-item{
-    display:flex; align-items:center; gap:1rem; background:var(--card); border:1px solid var(--line);
-    border-radius:10px; padding:.8rem 1rem;
-  }
-  .music-item .title{flex:1; font-weight:600;}
-  .music-item audio{height:32px; max-width:220px;}
-  .music-item .del{flex-shrink:0;}
-
-  .wheel-area{display:flex; flex-direction:column; align-items:center; gap:2rem;}
-  .wheel-wrap{position:relative; width:min(340px, 80vw); aspect-ratio:1;}
-  .wheel-pointer{
-    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-    width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent;
-    border-top:20px solid var(--gold); z-index:5;
-  }
-  svg.wheel{width:100%; height:100%; transition: transform 4s cubic-bezier(.17,.67,.16,.99);}
-  .spin-btn{
-    background:var(--gold); color:var(--bg); border:none; padding:.9rem 2.2rem; border-radius:30px;
-    font-weight:700; letter-spacing:.03em; cursor:pointer; font-family:'Nunito Sans'; font-size:.95rem;
-  }
-  .spin-btn:disabled{opacity:.5; cursor:default;}
-  .wheel-result{
-    font-family:'Caveat', cursive; font-size:1.8rem; color:var(--rose); min-height:2.4rem; text-align:center;
-  }
-  .activities-edit{max-width:420px; margin:1rem auto 0; text-align:left;}
-  .activities-edit summary{cursor:pointer; color:var(--muted); font-size:.9rem;}
-  .act-row{display:flex; gap:.5rem; margin-top:.6rem;}
-  .act-row input{
-    flex:1; background:var(--card); border:1px solid var(--line); color:var(--parchment);
-    padding:.5rem .7rem; border-radius:8px; font-family:'Nunito Sans'; min-width:0;
-  }
-  .act-row button{background:none; border:none; color:var(--rose); cursor:pointer; font-size:1.1rem;}
-  .add-act{
-    margin-top:.7rem; background:none; border:1px dashed var(--line); color:var(--muted);
-    padding:.4rem 1rem; border-radius:8px; cursor:pointer; width:100%;
-  }
-
-  .cal-grid{display:grid; grid-template-columns: 1.2fr 1fr; gap:2.5rem; max-width:960px; margin:0 auto;}
-  @media (max-width:760px){.cal-grid{grid-template-columns:1fr;}}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:1.6rem;}
-  .card h3{font-style:italic; font-size:1.4rem; margin-bottom:1rem;}
-  .date-item, .rem-item{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:.8rem 0; border-bottom:1px solid var(--line); gap:1rem;
-  }
-  .date-item:last-child, .rem-item:last-child{border-bottom:none;}
-  .date-item .label, .rem-item .label{font-weight:600;}
-  .date-item .when{color:var(--gold); font-family:'Caveat', cursive; font-size:1.3rem; white-space:nowrap;}
-  .rem-item .when{color:var(--muted); font-size:.85rem; white-space:nowrap;}
-  .del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem;}
-  .del:hover{color:var(--rose);}
-  .mini-form{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1rem;}
-  .mini-form input{
-    background:var(--bg-2); border:1px solid var(--line); color:var(--parchment);
-    padding:.55rem .7rem; border-radius:8px; font-family:'Nunito Sans'; font-size:.9rem;
-  }
-  .mini-form input[type=text]{flex:1; min-width:120px;}
-  .mini-form button{
-    background:var(--gold); color:var(--bg); border:none; padding:.55rem 1.1rem;
-    border-radius:8px; font-weight:700; cursor:pointer;
-  }
-  .empty-note{color:var(--muted); font-size:.9rem; font-style:italic;}
-  footer{text-align:center; padding:3rem; color:var(--muted); font-family:'Caveat', cursive; font-size:1.3rem;}
-
-  /* ---------- Liquid glass ---------- */
-  .glass{
-    position:relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(255,255,255,0.18);
-    box-shadow:
-      0 10px 40px rgba(0,0,0,0.45),
-      inset 0 1px 0 rgba(255,255,255,0.25),
-      inset 0 0 50px rgba(227,178,60,0.05);
-  }
-  /* Brillo diagonal que simula la curvatura del vidrio */
-  .glass::before{
-    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
-    background: linear-gradient(120deg, rgba(255,255,255,0.16) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.08) 100%);
+  
+  .glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 300px 300px;
+    pointer-events: none;
+    opacity: 0.3;
     mix-blend-mode: overlay;
   }
-  /* Capa de distorsión "líquida" (usa el filtro SVG sobre una copia difuminada del fondo) */
-  .glass::after{
-    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
-    backdrop-filter: url(#liquid-glass-distort) blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    opacity:.6;
+  
+  .glass-content {
+    position: relative;
+    z-index: 1;
   }
-  .glass > *{ position:relative; z-index:2; }
-  /* El elemento img/video del carrusel debe seguir ocupando todo el espacio */
-  .carousel.glass > img, .carousel.glass > video{ position:absolute; }
-  .glass-nav{
-    position: fixed; top: 1.2rem; left:50%; transform: translateX(-50%); z-index: 60;
-    display:flex; gap: 1.4rem; padding: .7rem 1.4rem; border-radius: 40px;
+  
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 30%, var(--bg-2), var(--bg) 70%);
+    padding: 3rem 6vw;
+    opacity: 1;
+    transform: none;
   }
-  .glass-nav a{
-    color: var(--muted); text-decoration:none; font-size:.82rem; letter-spacing:.03em;
-    font-weight:600; transition:.2s;
+  
+  .hero .eyebrow {
+    font-family: 'Caveat', cursive;
+    font-size: 1.8rem;
+    color: var(--rose);
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  .glass-nav a:hover{color: var(--gold);}
-  .glass-nav{transition: box-shadow .3s ease, padding .3s ease;}
-  .glass-nav.scrolled{box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);}
-  @media (max-width:640px){
-    .glass-nav{gap:.8rem; padding:.55rem 1rem; top:.8rem;}
-    .glass-nav a{font-size:.7rem;}
+  
+  .hero h1 {
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    font-style: italic;
+    color: var(--parchment);
+    opacity: 0;
+    transform: translateY(20px);
   }
-
-  @media (max-width: 640px){
-    section{padding: 3.5rem 6vw;}
-    .hero{min-height:92vh; padding: 3rem 6vw;}
-    .hero p{font-size:1rem;}
-    .card{padding:1.2rem;}
-    .mini-form{flex-direction:column; align-items:stretch;}
-    .mini-form input, .mini-form button{width:100%;}
-    .date-item, .rem-item{flex-wrap:wrap;}
-    .carousel-controls{gap:.8rem;}
-    .carousel-controls button{width:34px; height:34px; font-size:1rem; flex-shrink:0;}
-    .upload-btn{padding:.6rem 1.2rem; font-size:.9rem;}
-    footer{padding:2rem 1.5rem; font-size:1.1rem;}
-    .act-row input{min-width:0;}
-    .music-item{flex-wrap:wrap;}
+  
+  .hero p {
+    color: var(--muted);
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    max-width: 34rem;
+    opacity: 0;
+    transform: translateY(20px);
   }
-  @media (max-width: 380px){
-    .hero h1{font-size:2.1rem;}
-    .section-title{font-size:1.6rem;}
+  
+  .hero .counter {
+    margin-top: 2.5rem;
+    font-family: 'Caveat', cursive;
+    font-size: 2rem;
+    color: var(--gold);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .section-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-style: italic;
+    margin-bottom: .5rem;
+  }
+  
+  .section-sub {
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    max-width: 36rem;
+  }
+  
+  /* === CARRUSEL === */
+  .carousel-wrap {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  
+  .carousel {
+    position: relative;
+    aspect-ratio: 4/3;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--line);
+  }
+  
+  .carousel img,
+  .carousel video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+    z-index: 1;
+  }
+  
+  .carousel img.active,
+  .carousel video.active {
+    opacity: 1;
+    z-index: 2;
+  }
+  
+  .carousel video {
+    pointer-events: none;
+  }
+  
+  .carousel video.active {
+    pointer-events: auto;
+  }
+  
+  .carousel .empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .5rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .carousel .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+  }
+  
+  .carousel-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+  }
+  
+  .carousel-controls button {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--gold);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: .2s;
+  }
+  
+  .carousel-controls button:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  
+  .dots {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    max-width: 200px;
+    justify-content: center;
+  }
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  
+  .dot.active {
+    background: var(--gold);
+    transform: scale(1.2);
+  }
+  
+  .upload-box {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: .7rem 1.4rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Nunito Sans';
+    font-weight: 600;
+    transition: .2s;
+  }
+  
+  .upload-btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  
+  .upload-btn.disabled {
+    opacity: .5;
+    pointer-events: none;
+  }
+  
+  input[type=file] {
+    display: none;
+  }
+  
+  .upload-status {
+    margin-top: .8rem;
+    color: var(--muted);
+    font-size: .85rem;
+    min-height: 1.2rem;
+  }
+  
+  .ghost-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: .6rem 1.2rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Nunito Sans';
+    font-weight: 600;
+    font-size: .9rem;
+    transition: .2s;
+  }
+  
+  .ghost-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  
+  /* === LIBRO DE RECUERDOS === */
+  .book-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 6, 16, 0.92);
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 4rem 5vw;
+  }
+  
+  .book-overlay.open {
+    display: flex;
+  }
+  
+  .book-panel {
+    max-width: 1000px;
+    width: 100%;
+  }
+  
+  .book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .book-header h3 {
+    font-style: italic;
+    font-size: 1.8rem;
+  }
+  
+  .book-close {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--parchment);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: .2s;
+  }
+  
+  .book-close:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .book-item {
+    position: relative;
+    aspect-ratio: 3/4;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .book-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  }
+  
+  .book-item img,
+  .book-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .book-item .play-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(24, 15, 34, 0.75);
+    color: var(--gold);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+  }
+  
+  .book-item .book-date {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: .4rem .5rem .3rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+    font-size: .72rem;
+    color: var(--parchment);
+    font-family: 'Caveat', cursive;
+    font-size: 1rem;
+  }
+  
+  /* === LIGHTBOX === */
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 3, 10, 0.97);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+  }
+  
+  .lightbox-overlay.open {
+    display: flex;
+  }
+  
+  .lightbox-content {
+    max-width: 90vw;
+    max-height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .lightbox-content img,
+  .lightbox-content video {
+    max-width: 90vw;
+    max-height: 75vh;
+    border-radius: 12px;
+    object-fit: contain;
+  }
+  
+  .lightbox-date {
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    color: var(--gold);
+  }
+  
+  .lightbox-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--parchment);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: .2s;
+  }
+  
+  .lightbox-close:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--gold);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.3rem;
+    transition: .2s;
+  }
+  
+  .lightbox-nav:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  
+  .lightbox-prev {
+    left: 1.5rem;
+  }
+  
+  .lightbox-next {
+    right: 1.5rem;
+  }
+  
+  /* === MÚSICA === */
+  .music-list {
+    max-width: 760px;
+    margin: 2rem auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  
+  .music-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .8rem 1rem;
+  }
+  
+  .music-item .title {
+    flex: 1;
+    font-weight: 600;
+  }
+  
+  .music-item audio {
+    height: 32px;
+    max-width: 220px;
+  }
+  
+  .music-item .del {
+    flex-shrink: 0;
+  }
+  
+  .del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: .2s;
+  }
+  
+  .del:hover {
+    color: var(--rose);
+  }
+  
+  /* === RULETA === */
+  .wheel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .wheel-wrap {
+    position: relative;
+    width: min(340px, 80vw);
+    aspect-ratio: 1;
+  }
+  
+  .wheel-pointer {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 20px solid var(--gold);
+    z-index: 5;
+    filter: drop-shadow(0 2px 8px rgba(227, 178, 60, 0.4));
+  }
+  
+  svg.wheel {
+    width: 100%;
+    height: 100%;
+    transition: transform 4s cubic-bezier(.17, .67, .16, .99);
+  }
+  
+  .spin-btn {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    padding: .9rem 2.2rem;
+    border-radius: 30px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    cursor: pointer;
+    font-family: 'Nunito Sans';
+    font-size: .95rem;
+    transition: .2s;
+  }
+  
+  .spin-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(227, 178, 60, 0.3);
+  }
+  
+  .spin-btn:disabled {
+    opacity: .5;
+    cursor: default;
+  }
+  
+  .wheel-result {
+    font-family: 'Caveat', cursive;
+    font-size: 2rem;
+    color: var(--rose);
+    min-height: 2.8rem;
+    text-align: center;
+    animation: popIn 0.5s ease;
+  }
+  
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  
+  .activities-edit {
+    max-width: 420px;
+    margin: 1rem auto 0;
+    text-align: left;
+  }
+  
+  .activities-edit summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: .9rem;
+    transition: .2s;
+  }
+  
+  .activities-edit summary:hover {
+    color: var(--gold);
+  }
+  
+  .act-row {
+    display: flex;
+    gap: .5rem;
+    margin-top: .6rem;
+  }
+  
+  .act-row input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--parchment);
+    padding: .5rem .7rem;
+    border-radius: 8px;
+    font-family: 'Nunito Sans';
+    min-width: 0;
+  }
+  
+  .act-row input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  
+  .act-row button {
+    background: none;
+    border: none;
+    color: var(--rose);
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  
+  .add-act {
+    margin-top: .7rem;
+    background: none;
+    border: 1px dashed var(--line);
+    color: var(--muted);
+    padding: .4rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: .2s;
+  }
+  
+  .add-act:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  
+  /* === FECHAS Y RECORDATORIOS === */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 2.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1.6rem;
+  }
+  
+  .card h3 {
+    font-style: italic;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .date-item,
+  .rem-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .8rem 0;
+    border-bottom: 1px solid var(--line);
+    gap: 1rem;
+  }
+  
+  .date-item:last-child,
+  .rem-item:last-child {
+    border-bottom: none;
+  }
+  
+  .date-item .label,
+  .rem-item .label {
+    font-weight: 600;
+  }
+  
+  .date-item .when {
+    color: var(--gold);
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    white-space: nowrap;
+  }
+  
+  .rem-item .when {
+    color: var(--muted);
+    font-size: .85rem;
+    white-space: nowrap;
+  }
+  
+  .mini-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: 1rem;
+  }
+  
+  .mini-form input {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    color: var(--parchment);
+    padding: .55rem .7rem;
+    border-radius: 8px;
+    font-family: 'Nunito Sans';
+    font-size: .9rem;
+  }
+  
+  .mini-form input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  
+  .mini-form input[type=text] {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .mini-form button {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    padding: .55rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+  }
+  
+  .mini-form button:hover {
+    transform: scale(1.05);
+  }
+  
+  .empty-note {
+    color: var(--muted);
+    font-size: .9rem;
+    font-style: italic;
+  }
+  
+  /* === FOOTER === */
+  footer {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+  }
+  
+  /* === RESPONSIVE === */
+  @media (max-width: 760px) {
+    .cal-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    section {
+      padding: 3.5rem 6vw;
+    }
+    
+    .hero {
+      min-height: 92vh;
+      padding: 3rem 6vw;
+    }
+    
+    .hero p {
+      font-size: 1rem;
+    }
+    
+    .card {
+      padding: 1.2rem;
+    }
+    
+    .mini-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .mini-form input,
+    .mini-form button {
+      width: 100%;
+    }
+    
+    .date-item,
+    .rem-item {
+      flex-wrap: wrap;
+    }
+    
+    .carousel-controls {
+      gap: .8rem;
+    }
+    
+    .carousel-controls button {
+      width: 34px;
+      height: 34px;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    
+    .upload-btn {
+      padding: .6rem 1.2rem;
+      font-size: .9rem;
+    }
+    
+    footer {
+      padding: 2rem 1.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .act-row input {
+      min-width: 0;
+    }
+    
+    .music-item {
+      flex-wrap: wrap;
+    }
+    
+    .lightbox-nav {
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+    }
+    
+    .lightbox-close {
+      width: 34px;
+      height: 34px;
+    }
+    
+    .book-overlay {
+      padding: 2.5rem 5vw;
+    }
+  }
+  
+  @media (max-width: 380px) {
+    .hero h1 {
+      font-size: 2.1rem;
+    }
+    
+    .section-title {
+      font-size: 1.6rem;
+    }
   }
 </style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute;">
-  <filter id="liquid-glass-distort">
-    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="noise"/>
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
-
-<nav class="glass glass-nav">
-  <a href="#galeria">Galería</a>
-  <a href="#ruleta">Ruleta</a>
-  <a href="#fechas">Fechas</a>
-</nav>
-
-<section class="hero">
+<section class="hero" id="hero">
   <div class="eyebrow">nuestro rincón</div>
   <h1>Este espacio es nuestro</h1>
   <p>Un lugar pequeño para guardar fotos, videos, música, planear citas y no olvidar nunca las fechas que importan.</p>
   <div class="counter" id="dayCounter"></div>
 </section>
 
-<section id="galeria">
-  <h2 class="section-title">Nuestra galería</h2>
-  <p class="section-sub">Los momentos que hemos ido guardando (fotos y videos).</p>
-  <div class="carousel-wrap">
-    <div class="carousel glass" id="carousel">
-      <div class="loading" id="carouselLoading">cargando…</div>
-      <div class="empty" id="carouselEmpty" style="display:none;">
-        <span>Aún no hay fotos ni videos aquí.</span>
-        <span class="hand" style="font-size:1.4rem; color:var(--gold);">sube el primero</span>
+<section id="galeria" class="glass">
+  <div class="glass-content" style="padding:2.5rem;">
+    <h2 class="section-title">Nuestra galería</h2>
+    <p class="section-sub">Los momentos que hemos ido guardando (fotos y videos).</p>
+    <div class="carousel-wrap">
+      <div class="carousel glass" id="carousel">
+        <div class="loading" id="carouselLoading">cargando…</div>
+        <div class="empty" id="carouselEmpty" style="display:none;">
+          <span>Aún no hay fotos ni videos aquí.</span>
+          <span class="hand" style="font-size:1.4rem; color:var(--gold);">sube el primero</span>
+        </div>
+      </div>
+      <div class="carousel-controls">
+        <button id="prevBtn" aria-label="Anterior">‹</button>
+        <div class="dots" id="dots"></div>
+        <button id="nextBtn" aria-label="Siguiente">›</button>
+      </div>
+      <div class="upload-box" style="display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; margin-top:2rem;">
+        <label class="upload-btn" id="uploadLabel" for="fileInput">+ agregar foto o video</label>
+        <button class="ghost-btn" id="openBookBtn">ver todas las fotos</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+    
+    <div style="margin-top:2rem; border-top:1px solid var(--line); padding-top:2rem;">
+      <h3 style="font-family:'Caveat',cursive; font-size:1.5rem; color:var(--gold); text-align:center; margin-bottom:1rem;">🎵 Nuestra playlist</h3>
+      <div class="music-list" id="musicList"></div>
+      <div class="upload-box">
+        <label class="upload-btn" id="uploadMusicLabel" for="musicInput">+ agregar música</label>
+        <input type="file" id="musicInput" accept="audio/*" multiple>
       </div>
     </div>
-    <div class="carousel-controls">
-      <button id="prevBtn" aria-label="Anterior">‹</button>
-      <div class="dots" id="dots"></div>
-      <button id="nextBtn" aria-label="Siguiente">›</button>
-    </div>
-    <div class="upload-box" style="display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; margin-top:2rem;">
-      <label class="upload-btn" id="uploadLabel" for="fileInput">+ agregar foto o video</label>
-      <button class="ghost-btn" id="openBookBtn">ver todas las fotos</button>
-    </div>
-    <input type="file" id="fileInput" accept="image/*,video/*" multiple>
-    <div class="upload-status" id="uploadStatus"></div>
-    <div class="upload-panel" id="uploadPanel"></div>
-  </div>
-
-  <div class="music-list" id="musicList"></div>
-  <div class="upload-box">
-    <label class="upload-btn" id="uploadMusicLabel" for="musicInput">+ agregar música</label>
-    <input type="file" id="musicInput" accept="audio/*" multiple>
   </div>
 </section>
 
 <div class="book-overlay" id="bookOverlay">
-  <div class="book-panel glass">
+  <div class="book-panel">
     <div class="book-header">
       <h3>Todos nuestros recuerdos</h3>
       <button class="book-close" id="closeBookBtn">✕</button>
@@ -397,46 +988,54 @@
   <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
 </div>
 
-<section id="ruleta">
-  <h2 class="section-title">La ruleta de citas</h2>
-  <p class="section-sub">¿No saben qué hacer hoy? Que decida ella.</p>
-  <div class="wheel-area">
-    <div class="wheel-wrap">
-      <div class="wheel-pointer"></div>
-      <svg class="wheel" id="wheelSvg" viewBox="0 0 300 300"></svg>
+<section id="ruleta" class="glass">
+  <div class="glass-content" style="padding:2.5rem;">
+    <h2 class="section-title">La ruleta de citas</h2>
+    <p class="section-sub">¿No saben qué hacer hoy? Que decida ella.</p>
+    <div class="wheel-area">
+      <div class="wheel-wrap">
+        <div class="wheel-pointer"></div>
+        <svg class="wheel" id="wheelSvg" viewBox="0 0 300 300"></svg>
+      </div>
+      <button class="spin-btn" id="spinBtn">girar la ruleta</button>
+      <div class="wheel-result" id="wheelResult"></div>
+      <details class="activities-edit">
+        <summary>editar actividades</summary>
+        <div id="actList"></div>
+        <button class="add-act" id="addAct">+ añadir actividad</button>
+      </details>
     </div>
-    <button class="spin-btn" id="spinBtn">girar la ruleta</button>
-    <div class="wheel-result" id="wheelResult"></div>
-    <details class="activities-edit">
-      <summary>editar actividades</summary>
-      <div id="actList"></div>
-      <button class="add-act" id="addAct">+ añadir actividad</button>
-    </details>
   </div>
 </section>
 
-<section id="fechas">
-  <h2 class="section-title">Fechas y recuerdos</h2>
-  <p class="section-sub">Lo que no se nos puede olvidar.</p>
-  <div class="cal-grid">
-    <div class="card glass">
-      <h3>Fechas importantes</h3>
-      <div id="datesList"></div>
-      <p class="empty-note" id="datesEmpty">Todavía no han agregado fechas.</p>
-      <div class="mini-form">
-        <input type="text" id="dateLabel" placeholder="ej. Aniversario">
-        <input type="date" id="dateValue">
-        <button id="addDate">Agregar</button>
+<section id="fechas" class="glass">
+  <div class="glass-content" style="padding:2.5rem;">
+    <h2 class="section-title">Fechas y recuerdos</h2>
+    <p class="section-sub">Lo que no se nos puede olvidar.</p>
+    <div class="cal-grid">
+      <div class="card glass">
+        <div class="glass-content" style="padding:1.5rem;">
+          <h3>Fechas importantes</h3>
+          <div id="datesList"></div>
+          <p class="empty-note" id="datesEmpty">Todavía no han agregado fechas.</p>
+          <div class="mini-form">
+            <input type="text" id="dateLabel" placeholder="ej. Aniversario">
+            <input type="date" id="dateValue">
+            <button id="addDate">Agregar</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="card glass">
-      <h3>Recordatorios</h3>
-      <div id="remList"></div>
-      <p class="empty-note" id="remEmpty">Sin recordatorios por ahora.</p>
-      <div class="mini-form">
-        <input type="text" id="remLabel" placeholder="ej. Llamarla al llegar">
-        <input type="date" id="remValue">
-        <button id="addRem">Agregar</button>
+      <div class="card glass">
+        <div class="glass-content" style="padding:1.5rem;">
+          <h3>Recordatorios</h3>
+          <div id="remList"></div>
+          <p class="empty-note" id="remEmpty">Sin recordatorios por ahora.</p>
+          <div class="mini-form">
+            <input type="text" id="remLabel" placeholder="ej. Llamarla al llegar">
+            <input type="date" id="remValue">
+            <button id="addRem">Agregar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -446,15 +1045,109 @@
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import * as exifr from 'https://esm.sh/exifr@7.1.3/dist/lite.esm.js';
+import exifr from 'https://esm.sh/exifr@7.1.3';
 
+// --- GSAP ---
+const gsap = window.gsap;
+const ScrollTrigger = window.ScrollTrigger;
+
+if (gsap && ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
+  
+  // Hero animations - entrada
+  const heroTL = gsap.timeline({ defaults: { ease: 'power2.out' } });
+  heroTL
+    .to('.hero .eyebrow', { opacity: 1, y: 0, duration: 0.8, delay: 0.3 })
+    .to('.hero h1', { opacity: 1, y: 0, duration: 0.8 }, '-=0.4')
+    .to('.hero p', { opacity: 1, y: 0, duration: 0.8 }, '-=0.4')
+    .to('.hero .counter', { opacity: 1, y: 0, duration: 0.8 }, '-=0.4');
+
+  // Scroll animations para cada sección
+  const sections = document.querySelectorAll('section:not(.hero)');
+  sections.forEach((section, index) => {
+    // Primero ocultamos las secciones
+    gsap.set(section, { opacity: 0, y: 50 });
+    
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 85%',
+      onEnter: () => {
+        gsap.to(section, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+          delay: index * 0.1
+        });
+      },
+      once: true
+    });
+  });
+
+  // Animación especial para la ruleta - efecto bounce
+  ScrollTrigger.create({
+    trigger: '#ruleta',
+    start: 'top 80%',
+    onEnter: () => {
+      gsap.from('.wheel-wrap', {
+        scale: 0.8,
+        rotation: -20,
+        duration: 1,
+        ease: 'back.out(1.7)'
+      });
+      gsap.from('.spin-btn', {
+        scale: 0.5,
+        opacity: 0,
+        duration: 0.6,
+        delay: 0.3,
+        ease: 'back.out(2)'
+      });
+    },
+    once: true
+  });
+
+  // Animación stagger para items de fechas
+  ScrollTrigger.create({
+    trigger: '#fechas .card',
+    start: 'top 80%',
+    onEnter: () => {
+      gsap.from('#fechas .date-item, #fechas .rem-item', {
+        opacity: 0,
+        x: -30,
+        duration: 0.5,
+        stagger: 0.08,
+        ease: 'power2.out'
+      });
+    },
+    once: true
+  });
+
+  // Animación para items de música
+  ScrollTrigger.create({
+    trigger: '.music-list',
+    start: 'top 85%',
+    onEnter: () => {
+      gsap.from('.music-item', {
+        opacity: 0,
+        x: -30,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: 'power2.out'
+      });
+    },
+    once: true
+  });
+}
+
+// --- Supabase ---
 const SUPABASE_URL = 'https://njrvxafzdehlisetfcal.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_oZ4N-3gdsS3rtM7oMr_-vg_deIchMm1';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const BUCKET = 'media';
 
-async function renderCounter(){
-  const { data } = await supabase.from('relationship_meta').select('start_date').eq('id',1).single();
+// --- Contador ---
+async function renderCounter() {
+  const { data } = await supabase.from('relationship_meta').select('start_date').eq('id', 1).single();
   const start = new Date((data && data.start_date) || Date.now());
   const now = new Date();
   const days = Math.max(0, Math.floor((now - start) / 86400000));
@@ -462,6 +1155,7 @@ async function renderCounter(){
 }
 renderCounter();
 
+// --- Media ---
 let mediaItems = [];
 let current = 0;
 const carousel = document.getElementById('carousel');
@@ -469,298 +1163,257 @@ const dotsEl = document.getElementById('dots');
 const carouselEmpty = document.getElementById('carouselEmpty');
 const carouselLoading = document.getElementById('carouselLoading');
 
-function publicUrl(path){
+function publicUrl(path) {
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-async function loadMedia(){
+// Extraer fecha EXIF
+async function extractTakenAt(file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const data = await exifr.parse(buffer, { pick: ['DateTimeOriginal', 'CreateDate', 'ModifyDate'] });
+    if (data) {
+      const dateStr = data.DateTimeOriginal || data.CreateDate || data.ModifyDate;
+      if (dateStr) {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+    }
+  } catch (e) {
+    console.warn('EXIF extraction failed:', e);
+  }
+  // Fallback: usar lastModified
+  return new Date(file.lastModified).toISOString();
+}
+
+async function loadMedia() {
   const { data, error } = await supabase
     .from('media_items')
     .select('*')
-    .in('kind', ['photo','video'])
+    .in('kind', ['photo', 'video'])
     .order('taken_at', { ascending: true, nullsFirst: false });
   carouselLoading.style.display = 'none';
-  if(error){ console.error(error); return; }
+  if (error) { console.error(error); return; }
   mediaItems = data || [];
-  if(current >= mediaItems.length) current = 0;
+  if (current >= mediaItems.length) current = 0;
   buildCarousel();
   renderBook();
 }
 
-function formatDate(dateStr){
-  if(!dateStr) return '';
+function formatDate(dateStr) {
+  if (!dateStr) return '';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
-}
-function itemDate(item){
-  return item.taken_at || item.created_at;
+  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-/* Construye los elementos del carrusel una sola vez (permite crossfade real) */
-function buildCarousel(){
-  carousel.querySelectorAll('img, video').forEach(el=>el.remove());
-  if(mediaItems.length === 0){
+function buildCarousel() {
+  carousel.querySelectorAll('img, video').forEach(el => el.remove());
+  dotsEl.innerHTML = '';
+  if (mediaItems.length === 0) {
     carouselEmpty.style.display = 'flex';
-    renderDots();
     return;
   }
   carouselEmpty.style.display = 'none';
-  mediaItems.forEach((item, i)=>{
+  mediaItems.forEach((item, i) => {
     const url = publicUrl(item.storage_path);
     let el;
-    if(item.kind === 'video'){
+    if (item.kind === 'video') {
       el = document.createElement('video');
-      el.src = url; el.muted = true; el.loop = true; el.playsInline = true; el.controls = true;
+      el.src = url;
+      el.muted = true;
+      el.loop = true;
+      el.playsInline = true;
+      el.controls = true;
     } else {
       el = document.createElement('img');
       el.src = url;
+      el.loading = 'lazy';
     }
-    if(i === current) el.classList.add('active');
+    if (i === current) el.classList.add('active');
     carousel.appendChild(el);
-  });
-  renderDots();
-  updateSlideVideoPlayback();
-}
-
-/* Muestra máximo 5 puntos, en una ventana deslizante centrada en el slide actual */
-function renderDots(){
-  dotsEl.innerHTML = '';
-  const n = mediaItems.length;
-  if(n === 0) return;
-  const MAX_DOTS = 5;
-  let windowSize = Math.min(MAX_DOTS, n);
-  let start = Math.max(0, Math.min(current - Math.floor(windowSize/2), n - windowSize));
-  for(let i = start; i < start + windowSize; i++){
     const d = document.createElement('div');
     d.className = 'dot' + (i === current ? ' active' : '');
-    d.addEventListener('click', ()=>{ setActiveSlide(i); });
+    d.addEventListener('click', () => { setActiveSlide(i); });
     dotsEl.appendChild(d);
-  }
-}
-
-/* Solo alterna la clase activa entre elementos ya existentes -> transición de opacidad (fade in/out) */
-function setActiveSlide(i){
-  if(mediaItems.length === 0) return;
-  current = i;
-  const nodes = carousel.querySelectorAll('img, video');
-  nodes.forEach((el, idx)=> el.classList.toggle('active', idx === current));
-  renderDots();
+  });
   updateSlideVideoPlayback();
 }
 
-function updateSlideVideoPlayback(){
-  carousel.querySelectorAll('video').forEach((v, idx)=>{
-    if(idx === current){ v.play().catch(()=>{}); } else { v.pause(); }
+function setActiveSlide(i) {
+  if (mediaItems.length === 0) return;
+  current = i;
+  const nodes = carousel.querySelectorAll('img, video');
+  nodes.forEach((el, idx) => el.classList.toggle('active', idx === current));
+  const dots = dotsEl.querySelectorAll('.dot');
+  dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+  updateSlideVideoPlayback();
+}
+
+function updateSlideVideoPlayback() {
+  carousel.querySelectorAll('video').forEach((v, idx) => {
+    if (idx === current) { v.play().catch(() => {}); } else { v.pause(); }
   });
 }
 
-document.getElementById('prevBtn').addEventListener('click', ()=>{
-  if(mediaItems.length === 0) return;
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (mediaItems.length === 0) return;
   setActiveSlide((current - 1 + mediaItems.length) % mediaItems.length);
 });
-document.getElementById('nextBtn').addEventListener('click', ()=>{
-  if(mediaItems.length === 0) return;
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (mediaItems.length === 0) return;
   setActiveSlide((current + 1) % mediaItems.length);
 });
 
 const uploadStatus = document.getElementById('uploadStatus');
-const uploadPanel = document.getElementById('uploadPanel');
-
-async function getTakenDate(file){
-  if(file.type.startsWith('image')){
-    try{
-      const exifDate = await exifr.parse(file, ['DateTimeOriginal','CreateDate']);
-      if(exifDate && (exifDate.DateTimeOriginal || exifDate.CreateDate)){
-        return (exifDate.DateTimeOriginal || exifDate.CreateDate).toISOString();
-      }
-    }catch(e){ /* sin datos EXIF, seguimos con el respaldo */ }
-  }
-  // Respaldo: fecha de modificación del archivo (aplica a videos y fotos sin EXIF)
-  if(file.lastModified){
-    return new Date(file.lastModified).toISOString();
-  }
-  return new Date().toISOString();
-}
-
-document.getElementById('fileInput').addEventListener('change', async (e)=>{
+document.getElementById('fileInput').addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
-  if(files.length === 0) return;
+  if (files.length === 0) return;
   document.getElementById('uploadLabel').classList.add('disabled');
-  uploadPanel.innerHTML = '';
-
-  const rows = files.map(file=>{
-    const row = document.createElement('div');
-    row.className = 'upload-row';
-    row.innerHTML = `<div class="spinner"></div><span class="fname">${file.name}</span><span class="fstatus">subiendo…</span>`;
-    uploadPanel.appendChild(row);
-    return row;
-  });
-
-  for(let i = 0; i < files.length; i++){
-    const file = files[i];
-    const row = rows[i];
+  for (const file of files) {
+    uploadStatus.textContent = `Subiendo ${file.name}…`;
     const kind = file.type.startsWith('video') ? 'video' : 'photo';
-    const takenAt = await getTakenDate(file);
-    const path = `${kind}s/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const path = `${kind}s/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
     const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file);
-    if(upErr){
-      row.classList.add('error');
-      row.querySelector('.fstatus').textContent = 'error';
-      continue;
-    }
-    await supabase.from('media_items').insert({ kind, storage_path: path, title: file.name, taken_at: takenAt });
-    row.classList.add('done');
-    row.querySelector('.fstatus').textContent = 'listo';
+    if (upErr) { uploadStatus.textContent = `Error: ${upErr.message}`; continue; }
+    const takenAt = await extractTakenAt(file);
+    await supabase.from('media_items').insert({ 
+      kind, 
+      storage_path: path, 
+      title: file.name,
+      taken_at: takenAt
+    });
   }
-
+  uploadStatus.textContent = '✓ ¡Subida completa!';
   document.getElementById('uploadLabel').classList.remove('disabled');
   e.target.value = '';
   await loadMedia();
   setActiveSlide(mediaItems.length - 1);
-  setTimeout(()=>{ uploadPanel.innerHTML = ''; }, 2500);
+  setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
 });
 
-let autoAdvance = setInterval(()=>{
-  if(mediaItems.length > 1){
+// Autoplay
+setInterval(() => {
+  if (mediaItems.length > 1) {
     setActiveSlide((current + 1) % mediaItems.length);
   }
 }, 5000);
 
-/* ---------- Libro de recuerdos (ver todas las fotos) ---------- */
+// --- Libro de recuerdos ---
 const bookOverlay = document.getElementById('bookOverlay');
 const bookGrid = document.getElementById('bookGrid');
 
-function renderBook(){
+function renderBook() {
   bookGrid.innerHTML = '';
-
-  const photos = mediaItems
-    .map((item, idx)=>({ item, idx }))
-    .filter(x => x.item.kind === 'photo');
-  const videos = mediaItems
-    .map((item, idx)=>({ item, idx }))
-    .filter(x => x.item.kind === 'video');
-
-  function buildSection(title, entries){
-    if(entries.length === 0) return;
-    const section = document.createElement('div');
-    section.className = 'book-section';
-    const h4 = document.createElement('h4');
-    h4.textContent = `${title} (${entries.length})`;
-    section.appendChild(h4);
-    const grid = document.createElement('div');
-    grid.className = 'book-grid';
-    entries.forEach(({item, idx})=>{
-      const tile = document.createElement('div');
-      tile.className = 'book-item';
-      const url = publicUrl(item.storage_path);
-      if(item.kind === 'video'){
-        const vid = document.createElement('video');
-        vid.src = url; vid.muted = true;
-        tile.appendChild(vid);
-        const badge = document.createElement('div');
-        badge.className = 'play-badge';
-        badge.textContent = '▶';
-        tile.appendChild(badge);
-      } else {
-        const img = document.createElement('img');
-        img.src = url;
-        tile.appendChild(img);
-      }
-      const dateTag = document.createElement('div');
-      dateTag.className = 'book-date';
-      dateTag.textContent = formatDate(itemDate(item));
-      tile.appendChild(dateTag);
-      tile.addEventListener('click', ()=> openLightbox(idx));
-      grid.appendChild(tile);
-    });
-    section.appendChild(grid);
-    bookGrid.appendChild(section);
-  }
-
-  buildSection('Fotos', photos);
-  buildSection('Videos', videos);
-
-  if(photos.length === 0 && videos.length === 0){
-    bookGrid.innerHTML = '<p class="empty-note">Aún no hay recuerdos guardados.</p>';
-  }
+  mediaItems.forEach((item, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'book-item';
+    const url = publicUrl(item.storage_path);
+    if (item.kind === 'video') {
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.muted = true;
+      tile.appendChild(vid);
+      const badge = document.createElement('div');
+      badge.className = 'play-badge';
+      badge.textContent = '▶';
+      tile.appendChild(badge);
+    } else {
+      const img = document.createElement('img');
+      img.src = url;
+      img.loading = 'lazy';
+      tile.appendChild(img);
+    }
+    const dateTag = document.createElement('div');
+    dateTag.className = 'book-date';
+    dateTag.textContent = formatDate(item.taken_at || item.created_at);
+    tile.appendChild(dateTag);
+    tile.addEventListener('click', () => openLightbox(i));
+    bookGrid.appendChild(tile);
+  });
 }
 
-document.getElementById('openBookBtn').addEventListener('click', ()=>{
+document.getElementById('openBookBtn').addEventListener('click', () => {
   renderBook();
   bookOverlay.classList.add('open');
 });
-document.getElementById('closeBookBtn').addEventListener('click', ()=>{
+document.getElementById('closeBookBtn').addEventListener('click', () => {
   bookOverlay.classList.remove('open');
 });
-bookOverlay.addEventListener('click', (e)=>{
-  if(e.target === bookOverlay) bookOverlay.classList.remove('open');
+bookOverlay.addEventListener('click', (e) => {
+  if (e.target === bookOverlay) bookOverlay.classList.remove('open');
 });
 
-/* ---------- Lightbox pantalla completa ---------- */
+// --- Lightbox ---
 const lightboxOverlay = document.getElementById('lightboxOverlay');
 const lightboxContent = document.getElementById('lightboxContent');
 const lightboxDate = document.getElementById('lightboxDate');
 let lightboxIndex = 0;
 
-function openLightbox(i){
+function openLightbox(i) {
   lightboxIndex = i;
   renderLightbox();
   lightboxOverlay.classList.add('open');
 }
-function renderLightbox(){
+
+function renderLightbox() {
   const item = mediaItems[lightboxIndex];
-  if(!item) return;
+  if (!item) return;
   lightboxContent.innerHTML = '';
   const url = publicUrl(item.storage_path);
   let el;
-  if(item.kind === 'video'){
+  if (item.kind === 'video') {
     el = document.createElement('video');
-    el.src = url; el.controls = true; el.autoplay = true;
+    el.src = url;
+    el.controls = true;
+    el.autoplay = true;
   } else {
     el = document.createElement('img');
     el.src = url;
   }
   lightboxContent.appendChild(el);
-  lightboxDate.textContent = formatDate(item.created_at);
+  lightboxDate.textContent = formatDate(item.taken_at || item.created_at);
 }
-document.getElementById('lightboxClose').addEventListener('click', ()=>{
+
+document.getElementById('lightboxClose').addEventListener('click', () => {
   lightboxOverlay.classList.remove('open');
   lightboxContent.innerHTML = '';
 });
-lightboxOverlay.addEventListener('click', (e)=>{
-  if(e.target === lightboxOverlay){
+lightboxOverlay.addEventListener('click', (e) => {
+  if (e.target === lightboxOverlay) {
     lightboxOverlay.classList.remove('open');
     lightboxContent.innerHTML = '';
   }
 });
-document.getElementById('lightboxPrev').addEventListener('click', ()=>{
+document.getElementById('lightboxPrev').addEventListener('click', () => {
   lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length;
   renderLightbox();
 });
-document.getElementById('lightboxNext').addEventListener('click', ()=>{
+document.getElementById('lightboxNext').addEventListener('click', () => {
   lightboxIndex = (lightboxIndex + 1) % mediaItems.length;
   renderLightbox();
 });
-document.addEventListener('keydown', (e)=>{
-  if(!lightboxOverlay.classList.contains('open')) return;
-  if(e.key === 'Escape'){ lightboxOverlay.classList.remove('open'); lightboxContent.innerHTML=''; }
-  if(e.key === 'ArrowLeft'){ lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length; renderLightbox(); }
-  if(e.key === 'ArrowRight'){ lightboxIndex = (lightboxIndex + 1) % mediaItems.length; renderLightbox(); }
+document.addEventListener('keydown', (e) => {
+  if (!lightboxOverlay.classList.contains('open')) return;
+  if (e.key === 'Escape') { lightboxOverlay.classList.remove('open'); lightboxContent.innerHTML = ''; }
+  if (e.key === 'ArrowLeft') { lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length; renderLightbox(); }
+  if (e.key === 'ArrowRight') { lightboxIndex = (lightboxIndex + 1) % mediaItems.length; renderLightbox(); }
 });
 
+// --- Música ---
 let musicItems = [];
-async function loadMusic(){
+async function loadMusic() {
   const { data, error } = await supabase
-    .from('media_items').select('*').eq('kind','audio')
+    .from('media_items').select('*').eq('kind', 'audio')
     .order('created_at', { ascending: true });
-  if(error){ console.error(error); return; }
+  if (error) { console.error(error); return; }
   musicItems = data || [];
   renderMusic();
 }
-function renderMusic(){
+
+function renderMusic() {
   const el = document.getElementById('musicList');
   el.innerHTML = '';
-  musicItems.forEach(item=>{
+  musicItems.forEach(item => {
     const row = document.createElement('div');
     row.className = 'music-item';
     const title = document.createElement('span');
@@ -770,58 +1423,63 @@ function renderMusic(){
     audio.src = publicUrl(item.storage_path);
     audio.controls = true;
     const del = document.createElement('button');
-    del.className = 'del'; del.textContent = '✕';
-    del.addEventListener('click', async ()=>{
+    del.className = 'del';
+    del.textContent = '✕';
+    del.addEventListener('click', async () => {
       await supabase.storage.from(BUCKET).remove([item.storage_path]);
       await supabase.from('media_items').delete().eq('id', item.id);
       loadMusic();
     });
-    row.appendChild(title); row.appendChild(audio); row.appendChild(del);
+    row.appendChild(title);
+    row.appendChild(audio);
+    row.appendChild(del);
     el.appendChild(row);
   });
 }
-document.getElementById('musicInput').addEventListener('change', async (e)=>{
+
+document.getElementById('musicInput').addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
-  if(files.length === 0) return;
+  if (files.length === 0) return;
   document.getElementById('uploadMusicLabel').classList.add('disabled');
-  for(const file of files){
-    const path = `audio/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+  for (const file of files) {
+    const path = `audio/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
     const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file);
-    if(upErr){ console.error(upErr); continue; }
-    await supabase.from('media_items').insert({ kind:'audio', storage_path: path, title: file.name });
+    if (upErr) { console.error(upErr); continue; }
+    await supabase.from('media_items').insert({ kind: 'audio', storage_path: path, title: file.name });
   }
   document.getElementById('uploadMusicLabel').classList.remove('disabled');
   e.target.value = '';
   loadMusic();
 });
 
+// --- Ruleta ---
 const wheelSvg = document.getElementById('wheelSvg');
-const colors = ['#e3b23c','#d98a9c','#7c6a92','#c99a4f','#b6708a','#5f4b76'];
+const colors = ['#e3b23c', '#d98a9c', '#7c6a92', '#c99a4f', '#b6708a', '#5f4b76'];
 let wheelRotation = 0;
 let activities = [];
 
-async function loadActivities(){
+async function loadActivities() {
   const { data, error } = await supabase.from('wheel_activities').select('*').order('sort_order');
-  if(error){ console.error(error); return; }
+  if (error) { console.error(error); return; }
   activities = data || [];
   renderWheel();
   renderActList();
 }
 
-function renderWheel(){
+function renderWheel() {
   wheelSvg.innerHTML = '';
   const n = activities.length || 1;
   const slice = 360 / n;
   const cx = 150, cy = 150, r = 148;
-  activities.forEach((act, i)=>{
+  activities.forEach((act, i) => {
     const start = i * slice;
     const end = start + slice;
-    const x1 = cx + r * Math.cos(Math.PI * (start-90) / 180);
-    const y1 = cy + r * Math.sin(Math.PI * (start-90) / 180);
-    const x2 = cx + r * Math.cos(Math.PI * (end-90) / 180);
-    const y2 = cy + r * Math.sin(Math.PI * (end-90) / 180);
+    const x1 = cx + r * Math.cos(Math.PI * (start - 90) / 180);
+    const y1 = cy + r * Math.sin(Math.PI * (start - 90) / 180);
+    const x2 = cx + r * Math.cos(Math.PI * (end - 90) / 180);
+    const y2 = cy + r * Math.sin(Math.PI * (end - 90) / 180);
     const largeArc = slice > 180 ? 1 : 0;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z`);
     path.setAttribute('fill', colors[i % colors.length]);
     path.setAttribute('stroke', '#180f22');
@@ -829,27 +1487,29 @@ function renderWheel(){
     wheelSvg.appendChild(path);
 
     const mid = (start + end) / 2;
-    const tx = cx + (r*0.62) * Math.cos(Math.PI*(mid-90)/180);
-    const ty = cy + (r*0.62) * Math.sin(Math.PI*(mid-90)/180);
-    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-    text.setAttribute('x', tx); text.setAttribute('y', ty);
-    text.setAttribute('text-anchor','middle');
-    text.setAttribute('font-size','10.5');
-    text.setAttribute('font-family','Nunito Sans, sans-serif');
-    text.setAttribute('font-weight','700');
-    text.setAttribute('fill','#180f22');
+    const tx = cx + (r * 0.62) * Math.cos(Math.PI * (mid - 90) / 180);
+    const ty = cy + (r * 0.62) * Math.sin(Math.PI * (mid - 90) / 180);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', tx);
+    text.setAttribute('y', ty);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '10.5');
+    text.setAttribute('font-family', 'Nunito Sans, sans-serif');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('fill', '#180f22');
     text.setAttribute('transform', `rotate(${mid}, ${tx}, ${ty})`);
     const words = (act.label || '').split(' ');
-    let line = ''; let lines = [];
-    words.forEach(w=>{
-      if((line + w).length > 12){ lines.push(line.trim()); line=''; }
+    let line = '';
+    let lines = [];
+    words.forEach(w => {
+      if ((line + w).length > 12) { lines.push(line.trim()); line = ''; }
       line += w + ' ';
     });
     lines.push(line.trim());
-    lines.forEach((l, li)=>{
-      const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+    lines.forEach((l, li) => {
+      const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
       tspan.setAttribute('x', tx);
-      tspan.setAttribute('dy', li===0 ? 0 : 11);
+      tspan.setAttribute('dy', li === 0 ? 0 : 11);
       tspan.textContent = l;
       text.appendChild(tspan);
     });
@@ -857,71 +1517,76 @@ function renderWheel(){
   });
 }
 
-document.getElementById('spinBtn').addEventListener('click', function(){
-  if(activities.length === 0) return;
+document.getElementById('spinBtn').addEventListener('click', function() {
+  if (activities.length === 0) return;
   this.disabled = true;
   const n = activities.length;
-  const slice = 360/n;
-  const winner = Math.floor(Math.random()*n);
-  const targetAngle = 360*5 + (360 - (winner*slice + slice/2));
+  const slice = 360 / n;
+  const winner = Math.floor(Math.random() * n);
+  const targetAngle = 360 * 5 + (360 - (winner * slice + slice / 2));
   wheelRotation += targetAngle;
   wheelSvg.style.transform = `rotate(${wheelRotation}deg)`;
   document.getElementById('wheelResult').textContent = '';
-  setTimeout(()=>{
+  setTimeout(() => {
     document.getElementById('wheelResult').textContent = activities[winner].label;
     this.disabled = false;
   }, 4100);
 });
 
-function renderActList(){
+function renderActList() {
   const el = document.getElementById('actList');
   el.innerHTML = '';
-  activities.forEach((act, i)=>{
+  activities.forEach((act, i) => {
     const row = document.createElement('div');
     row.className = 'act-row';
     const inp = document.createElement('input');
     inp.value = act.label;
-    inp.addEventListener('change', async ()=>{
+    inp.addEventListener('change', async () => {
       await supabase.from('wheel_activities').update({ label: inp.value }).eq('id', act.id);
       activities[i].label = inp.value;
       renderWheel();
     });
     const btn = document.createElement('button');
     btn.textContent = '✕';
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', async () => {
       await supabase.from('wheel_activities').delete().eq('id', act.id);
       loadActivities();
     });
-    row.appendChild(inp); row.appendChild(btn);
+    row.appendChild(inp);
+    row.appendChild(btn);
     el.appendChild(row);
   });
 }
-document.getElementById('addAct').addEventListener('click', async ()=>{
-  const nextOrder = activities.length ? Math.max(...activities.map(a=>a.sort_order)) + 1 : 1;
+
+document.getElementById('addAct').addEventListener('click', async () => {
+  const nextOrder = activities.length ? Math.max(...activities.map(a => a.sort_order)) + 1 : 1;
   await supabase.from('wheel_activities').insert({ label: 'Nueva actividad', sort_order: nextOrder });
   loadActivities();
 });
 
+// --- Fechas importantes ---
 let importantDates = [];
-async function loadDates(){
+async function loadDates() {
   const { data, error } = await supabase.from('important_dates').select('*').order('event_date');
-  if(error){ console.error(error); return; }
+  if (error) { console.error(error); return; }
   importantDates = data || [];
   renderDates();
 }
-function renderDates(){
+
+function renderDates() {
   const list = document.getElementById('datesList');
   list.innerHTML = '';
   document.getElementById('datesEmpty').style.display = importantDates.length ? 'none' : 'block';
-  importantDates.forEach(item=>{
+  importantDates.forEach(item => {
     const row = document.createElement('div');
     row.className = 'date-item';
     const d = new Date(item.event_date + 'T00:00:00');
-    const formatted = d.toLocaleDateString('es-MX', {day:'numeric', month:'short', year:'numeric'});
+    const formatted = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
     row.innerHTML = `<span class="label">${item.label}</span><span class="when">${formatted}</span>`;
     const delBtn = document.createElement('button');
-    delBtn.className = 'del'; delBtn.textContent = '✕';
-    delBtn.addEventListener('click', async ()=>{
+    delBtn.className = 'del';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', async () => {
       await supabase.from('important_dates').delete().eq('id', item.id);
       loadDates();
     });
@@ -929,34 +1594,39 @@ function renderDates(){
     list.appendChild(row);
   });
 }
-document.getElementById('addDate').addEventListener('click', async ()=>{
+
+document.getElementById('addDate').addEventListener('click', async () => {
   const label = document.getElementById('dateLabel').value.trim();
   const value = document.getElementById('dateValue').value;
-  if(!label || !value) return;
+  if (!label || !value) return;
   await supabase.from('important_dates').insert({ label, event_date: value });
-  document.getElementById('dateLabel').value=''; document.getElementById('dateValue').value='';
+  document.getElementById('dateLabel').value = '';
+  document.getElementById('dateValue').value = '';
   loadDates();
 });
 
+// --- Recordatorios ---
 let reminders = [];
-async function loadReminders(){
+async function loadReminders() {
   const { data, error } = await supabase.from('reminders').select('*').order('due_date', { ascending: true, nullsFirst: false });
-  if(error){ console.error(error); return; }
+  if (error) { console.error(error); return; }
   reminders = data || [];
   renderReminders();
 }
-function renderReminders(){
+
+function renderReminders() {
   const list = document.getElementById('remList');
   list.innerHTML = '';
   document.getElementById('remEmpty').style.display = reminders.length ? 'none' : 'block';
-  reminders.forEach(item=>{
+  reminders.forEach(item => {
     const row = document.createElement('div');
     row.className = 'rem-item';
-    const formatted = item.due_date ? new Date(item.due_date+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric', month:'short'}) : '';
+    const formatted = item.due_date ? new Date(item.due_date + 'T00:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '';
     row.innerHTML = `<span class="label">${item.label}</span><span class="when">${formatted}</span>`;
     const delBtn = document.createElement('button');
-    delBtn.className = 'del'; delBtn.textContent = '✕';
-    delBtn.addEventListener('click', async ()=>{
+    delBtn.className = 'del';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', async () => {
       await supabase.from('reminders').delete().eq('id', item.id);
       loadReminders();
     });
@@ -964,102 +1634,23 @@ function renderReminders(){
     list.appendChild(row);
   });
 }
-document.getElementById('addRem').addEventListener('click', async ()=>{
+
+document.getElementById('addRem').addEventListener('click', async () => {
   const label = document.getElementById('remLabel').value.trim();
   const value = document.getElementById('remValue').value || null;
-  if(!label) return;
+  if (!label) return;
   await supabase.from('reminders').insert({ label, due_date: value });
-  document.getElementById('remLabel').value=''; document.getElementById('remValue').value='';
+  document.getElementById('remLabel').value = '';
+  document.getElementById('remValue').value = '';
   loadReminders();
 });
 
+// --- Inicializar ---
 loadMedia();
 loadMusic();
 loadActivities();
 loadDates();
 loadReminders();
-
-/* ---------- GSAP + ScrollTrigger ---------- */
-gsap.registerPlugin(ScrollTrigger);
-
-// Hero: entrada suave + ligero parallax al hacer scroll
-// Hero: SOLO animación ligada al scroll (nada se anima al cargar la página).
-// El texto se mantiene visible y fijo hasta que empiezas a hacer scroll,
-// momento en el que se desvanece suavemente a lo largo de una distancia larga.
-const heroTimeline = gsap.timeline({
-  scrollTrigger: {
-    trigger: '.hero',
-    start: 'top top',
-    end: '+=140%',
-    scrub: 1
-  }
-});
-heroTimeline
-  .to('.hero .eyebrow', { y: -40, opacity: 0, ease:'none' }, 0)
-  .to('.hero h1', { y: -70, opacity: 0, ease:'none' }, 0.05)
-  .to('.hero p', { y: -50, opacity: 0, ease:'none' }, 0.1)
-  .to('.hero .counter', { y: -30, opacity: 0, ease:'none' }, 0.15);
-
-// Títulos de sección: aparecen al entrar en viewport
-gsap.utils.toArray('.section-title').forEach(el=>{
-  gsap.from(el, {
-    opacity:0, y:40, duration:.9, ease:'power2.out',
-    scrollTrigger: { trigger: el, start:'top 85%' }
-  });
-});
-gsap.utils.toArray('.section-sub').forEach(el=>{
-  gsap.from(el, {
-    opacity:0, y:24, duration:.9, delay:.1, ease:'power2.out',
-    scrollTrigger: { trigger: el, start:'top 85%' }
-  });
-});
-
-// Carrusel: aparece con escala + fade
-gsap.from('.carousel-wrap', {
-  opacity:0, y:50, scale:.96, duration:1, ease:'power2.out',
-  scrollTrigger: { trigger:'.carousel-wrap', start:'top 80%' }
-});
-
-// Ruleta: entrada tipo "pop"
-gsap.from('.wheel-wrap', {
-  opacity:0, scale:.7, rotate:-15, duration:1, ease:'back.out(1.6)',
-  scrollTrigger: { trigger:'.wheel-area', start:'top 75%' }
-});
-gsap.from('.spin-btn, .wheel-result', {
-  opacity:0, y:20, duration:.8, delay:.2, ease:'power2.out',
-  scrollTrigger: { trigger:'.wheel-area', start:'top 70%' }
-});
-
-// Tarjetas de fechas/recordatorios: entrada escalonada
-gsap.from('.cal-grid .card', {
-  opacity:0, y:40, duration:.9, stagger:.15, ease:'power2.out',
-  scrollTrigger: { trigger:'.cal-grid', start:'top 80%' }
-});
-
-// Footer
-gsap.from('footer', {
-  opacity:0, y:20, duration:.9, ease:'power2.out',
-  scrollTrigger: { trigger:'footer', start:'top 90%' }
-});
-
-// Nav de vidrio: se atenúa ligeramente al hacer scroll, vuelve a intensificarse arriba
-ScrollTrigger.create({
-  start: 'top -80',
-  end: 99999,
-  toggleClass: { targets: '.glass-nav', className: 'scrolled' }
-});
-
-// Re-anima elementos nuevos del libro de recuerdos y música cuando se generan dinámicamente
-function animateBookTiles(){
-  gsap.from('.book-item', { opacity:0, y:20, duration:.5, stagger:.03, ease:'power2.out' });
-}
-function animateMusicRows(){
-  gsap.from('.music-item', { opacity:0, x:-20, duration:.5, stagger:.06, ease:'power2.out' });
-}
-const _origRenderBook = renderBook;
-renderBook = function(){ _origRenderBook(); animateBookTiles(); };
-const _origRenderMusic = renderMusic;
-renderMusic = function(){ _origRenderMusic(); animateMusicRows(); };
 </script>
 </body>
 </html>
